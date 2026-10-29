@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026年度各部門預算與專案進度追蹤總表.xlsx - Excel</title>
-  <!-- PeerJS 免費 WebRTC 通訊庫，支援跨電腦即時連線 -->
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- MQTT 雲端即時連線庫 (免伺服器、跨電腦即時連線、純記憶體不存檔) -->
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
   <style>
     :root {
       --excel-green: #107c41;
@@ -119,7 +119,7 @@
     }
     .boss-key-btn:hover { background: #b02a37; }
 
-    /* 功能區選單分頁 (Ribbon Tabs) */
+    /* 功能區選單分頁 */
     .ribbon-tabs {
       background-color: var(--excel-green);
       display: flex;
@@ -145,7 +145,7 @@
       opacity: 1;
     }
 
-    /* 工具列 (Ribbon Toolbar) */
+    /* 工具列 */
     .ribbon-toolbar {
       background: var(--ribbon-bg);
       border-bottom: 1px solid var(--border-gray);
@@ -160,9 +160,9 @@
     .toolbar-group {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       border-right: 1px solid #ddd;
-      padding-right: 10px;
+      padding-right: 12px;
       height: 100%;
     }
 
@@ -180,7 +180,7 @@
     }
     .btn-tool:hover { background: #e5e5e5; border-color: #ccc; }
 
-    /* 公式列 (發言輸入框) */
+    /* 公式列 */
     .formula-bar-container {
       display: flex;
       align-items: center;
@@ -243,7 +243,7 @@
       pointer-events: none;
     }
 
-    /* 試算表主體區 */
+    /* 試算表區 */
     .sheet-wrapper {
       flex: 1;
       display: flex;
@@ -292,7 +292,7 @@
     .col-sender { width: 130px; font-weight: 600; color: #1e3a8a; }
     .col-dept { width: 100px; text-align: center; color: #555; }
     .col-msg { width: auto; color: #111; user-select: text; }
-    .col-tag { width: 130px; text-align: center; font-size: 11px; }
+    .col-tag { width: 135px; text-align: center; font-size: 11px; }
     .col-cost { width: 95px; text-align: right; font-family: monospace; color: #0f5132; }
     .col-status { width: 85px; text-align: center; }
 
@@ -315,7 +315,7 @@
     }
     .badge-ok { background: #d1e7dd; color: #0f5132; }
 
-    /* 底部狀態列與分頁標籤 */
+    /* 底部狀態列 */
     .bottom-bar {
       background: #f3f2f1;
       border-top: 1px solid var(--border-gray);
@@ -358,7 +358,7 @@
       font-family: monospace;
     }
 
-    /* 登入彈跳視窗 (Office 協同認證風格) */
+    /* 登入彈跳視窗 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -371,7 +371,7 @@
 
     .excel-modal {
       background: white;
-      width: 440px;
+      width: 450px;
       border: 1px solid #888;
       box-shadow: 0 8px 24px rgba(0,0,0,0.25);
       border-radius: 4px;
@@ -440,7 +440,7 @@
     }
     .btn-primary:hover { background: var(--excel-green-dark); }
 
-    /* 老闆鍵畫面 (正式財務分析報告) */
+    /* 老闆鍵畫面 */
     .boss-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -489,6 +489,17 @@
       border: 1px solid #ccc;
       padding: 16px;
     }
+
+    .notice-bar {
+      font-size: 11px;
+      background: #e8f5e9;
+      color: #0f5132;
+      padding: 3px 8px;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   </style>
 </head>
 <body>
@@ -498,8 +509,8 @@
     <div class="title-left">
       <div class="app-icon">X</div>
       <div class="auto-save">
-        <span>自動儲存</span>
-        <span style="color:#a7f3d0;">● 開啟</span>
+        <span>無痕通道</span>
+        <span id="connIndicator" style="color:#a7f3d0;">● 連線中</span>
       </div>
       <div class="file-title">2026年度各部門預算與專案進度追蹤總表.xlsx - Excel</div>
     </div>
@@ -536,9 +547,9 @@
         <span style="font-size:16px;">📥</span>
         <span>匯出報表</span>
       </button>
-      <button class="btn-tool" onclick="clearMessages()">
+      <button class="btn-tool" onclick="manualClear()">
         <span style="font-size:16px;">🧹</span>
-        <span>清除資料</span>
+        <span>立刻銷毀</span>
       </button>
     </div>
 
@@ -567,11 +578,17 @@
       </div>
     </div>
 
+    <div class="toolbar-group">
+      <div class="notice-bar">
+        <span>⏱️ 訊息生命週期：4小時後或關閉分頁自動永久銷毀</span>
+      </div>
+    </div>
+
     <div class="toolbar-group" style="border:none;">
-      <span style="font-size:11px; color:#555;">頻道群組代碼:</span>
-      <input type="text" id="roomInput" value="FIN-2026-HQ" style="width:110px; font-size:11px; padding:2px 4px; border:1px solid #bbb;" />
-      <button class="btn-tool" onclick="reconnectRoom()" style="padding:2px 8px; flex-direction:row; gap:3px;">
-        <span>🔄</span><span>切換群組</span>
+      <span style="font-size:11px; color:#555;">專案房間碼:</span>
+      <input type="text" id="roomInput" value="FIN-SECRET-99" style="width:115px; font-size:11px; padding:2px 4px; border:1px solid #bbb;" />
+      <button class="btn-tool" onclick="switchRoom()" style="padding:2px 8px; flex-direction:row; gap:3px;">
+        <span>🔄</span><span>進入房間</span>
       </button>
     </div>
   </div>
@@ -622,9 +639,9 @@
       <span style="cursor:pointer; font-size:14px; margin-left:6px; color:#777;">＋</span>
     </div>
     <div class="status-stats">
-      <span>就緒</span>
+      <span id="connStatusText">通道已連線</span>
       <span>|</span>
-      <span>項目計數: <b id="statCount">0</b></span>
+      <span>有效紀錄: <b id="statCount">0</b></span>
       <span>|</span>
       <span>加總: <b id="statSum">$ 0</b></span>
       <span>|</span>
@@ -643,7 +660,7 @@
       </div>
       <div class="modal-body">
         <p style="color:#555; line-height:1.4;">
-          歡迎存取內部共用活頁簿。請登記您的同仁暱稱與部門單位，以便在試算表修訂紀錄中留下審核簽章。
+          歡迎存取內部共用活頁簿。資料全程透過純記憶體通道傳遞，<b>無後端資料庫存檔</b>。關閉瀏覽器或發送滿 4 小時將徹底銷毀。
         </p>
         <div class="form-group">
           <label>經辦人暱稱 / 同仁姓名 <span style="color:red;">*</span></label>
@@ -660,9 +677,9 @@
           </select>
         </div>
         <div class="form-group">
-          <label>共用頻道代碼 (會議室 Room ID)</label>
-          <input type="text" id="modalRoomInput" value="FIN-2026-HQ" />
-          <small style="color:#777;">同群組的人輸入相同代碼即可直接連線聊天</small>
+          <label>專案房間代碼 (Room ID)</label>
+          <input type="text" id="modalRoomInput" value="FIN-SECRET-99" />
+          <small style="color:#777;">不同電腦的同事輸入<b>完全相同的代碼</b>即可進入同一間聊天室</small>
         </div>
       </div>
       <div class="modal-footer">
@@ -729,16 +746,17 @@
   </div>
 
   <script>
+    const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+
     let currentUser = {
-      nickname: localStorage.getItem('excel_chat_nickname') || '',
-      dept: localStorage.getItem('excel_chat_dept') || '財務總部',
-      room: localStorage.getItem('excel_chat_room') || 'FIN-2026-HQ'
+      nickname: sessionStorage.getItem('excel_user_nick') || '',
+      dept: sessionStorage.getItem('excel_user_dept') || '財務總部',
+      room: sessionStorage.getItem('excel_user_room') || 'FIN-SECRET-99',
+      clientId: 'client_' + Math.random().toString(36).substring(2, 9)
     };
 
     let messages = [];
-    let currentRowIndex = 1;
-    let peer = null;
-    let peerConnections = [];
+    let mqttClient = null;
     let localBroadcast = null;
 
     const JARGON_TAGS = [
@@ -759,14 +777,20 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash && window.location.hash.length > 1) {
+        currentUser.room = decodeURIComponent(window.location.hash.substring(1));
+      }
+
       document.getElementById('roomInput').value = currentUser.room;
       document.getElementById('modalRoomInput').value = currentUser.room;
+
+      loadFromSession();
 
       if (!currentUser.nickname) {
         showLoginModal();
       } else {
         updateUserUI();
-        initCommunication();
+        initConnection();
       }
 
       document.getElementById('formulaInput').addEventListener('keydown', (e) => {
@@ -783,9 +807,11 @@
         }
       });
 
-      if (messages.length === 0) {
-        loadDemoMessages();
-      }
+      setInterval(purgeExpiredMessages, 30000);
+
+      window.addEventListener('beforeunload', () => {
+        sessionStorage.clear();
+      });
     });
 
     function showLoginModal() {
@@ -797,9 +823,9 @@
 
     function closeModal() {
       if (!currentUser.nickname) {
-        currentUser.nickname = '訪客同仁_' + Math.floor(100 + Math.random() * 900);
+        currentUser.nickname = '專案同仁_' + Math.floor(100 + Math.random() * 900);
         updateUserUI();
-        initCommunication();
+        initConnection();
       }
       document.getElementById('loginModal').style.display = 'none';
     }
@@ -807,7 +833,7 @@
     function confirmLogin() {
       const name = document.getElementById('nicknameInput').value.trim();
       const dept = document.getElementById('deptInput').value;
-      const room = document.getElementById('modalRoomInput').value.trim() || 'FIN-2026-HQ';
+      const room = document.getElementById('modalRoomInput').value.trim() || 'FIN-SECRET-99';
 
       if (!name) {
         alert('請填寫經辦人員暱稱！');
@@ -818,57 +844,136 @@
       currentUser.dept = dept;
       currentUser.room = room;
 
-      localStorage.setItem('excel_chat_nickname', name);
-      localStorage.setItem('excel_chat_dept', dept);
-      localStorage.setItem('excel_chat_room', room);
+      sessionStorage.setItem('excel_user_nick', name);
+      sessionStorage.setItem('excel_user_dept', dept);
+      sessionStorage.setItem('excel_user_room', room);
 
+      window.location.hash = room;
       document.getElementById('roomInput').value = room;
       updateUserUI();
       document.getElementById('loginModal').style.display = 'none';
-      initCommunication();
+      initConnection();
     }
 
     function updateUserUI() {
       document.getElementById('userStatusTag').innerText = `👤 ${currentUser.nickname} (${currentUser.dept})`;
     }
 
-    function initCommunication() {
+    function switchRoom() {
+      const newRoom = document.getElementById('roomInput').value.trim() || 'FIN-SECRET-99';
+      if (newRoom === currentUser.room) return;
+
+      currentUser.room = newRoom;
+      sessionStorage.setItem('excel_user_room', newRoom);
+      window.location.hash = newRoom;
+
+      messages = [];
+      sessionStorage.removeItem('excel_cached_msgs');
+      rebuildTable();
+      initConnection();
+    }
+
+    function initConnection() {
       if (localBroadcast) localBroadcast.close();
-      localBroadcast = new BroadcastChannel('excel_chat_' + currentUser.room);
+      localBroadcast = new BroadcastChannel('corp_excel_' + currentUser.room);
       localBroadcast.onmessage = (event) => {
-        if (event.data && event.data.type === 'NEW_MESSAGE') {
-          renderNewRow(event.data.payload, false);
-        }
+        handleIncomingPacket(event.data);
       };
 
-      initPeerJS();
+      if (mqttClient) {
+        try { mqttClient.end(true); } catch(e){}
+      }
+
+      document.getElementById('connIndicator').innerText = '● 連線中...';
+      document.getElementById('connIndicator').style.color = '#ffc107';
+      document.getElementById('connStatusText').innerText = '正在連線加密雲端通道...';
+
+      const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+      const topic = `corp_excel_v2_room/${encodeURIComponent(currentUser.room)}`;
+
+      mqttClient = mqtt.connect(brokerUrl, {
+        clientId: currentUser.clientId,
+        clean: true,
+        connectTimeout: 5000,
+        reconnectPeriod: 3000
+      });
+
+      mqttClient.on('connect', () => {
+        document.getElementById('connIndicator').innerText = '● 雲端加密在線';
+        document.getElementById('connIndicator').style.color = '#a7f3d0';
+        document.getElementById('connStatusText').innerText = `專案通道 [${currentUser.room}] 已連線`;
+
+        mqttClient.subscribe(topic, { qos: 0 });
+
+        const reqPacket = {
+          type: 'SYNC_REQUEST',
+          senderId: currentUser.clientId,
+          room: currentUser.room
+        };
+        mqttClient.publish(topic, JSON.stringify(reqPacket));
+      });
+
+      mqttClient.on('message', (t, payload) => {
+        try {
+          const packet = JSON.parse(payload.toString());
+          handleIncomingPacket(packet);
+        } catch (err) {
+          console.error('封包解析異常', err);
+        }
+      });
+
+      mqttClient.on('error', (err) => {
+        console.warn('MQTT 連線警告', err);
+        document.getElementById('connIndicator').innerText = '○ 離線重連中';
+        document.getElementById('connIndicator').style.color = '#ff6b6b';
+      });
     }
 
-    function initPeerJS() {
-      try {
-        if (peer) peer.destroy();
-        const myPeerId = 'excel_user_' + Math.random().toString(36).substr(2, 9);
-        peer = new Peer(myPeerId);
+    function handleIncomingPacket(packet) {
+      if (!packet || packet.room !== currentUser.room) return;
 
-        peer.on('connection', (conn) => {
-          conn.on('data', (data) => {
-            if (data && data.type === 'NEW_MESSAGE') {
-              renderNewRow(data.payload, false);
+      if (packet.type === 'CHAT_MESSAGE') {
+        const msg = packet.payload;
+        if (!messages.some(m => m.id === msg.id)) {
+          if (Date.now() - msg.timestamp < FOUR_HOURS_MS) {
+            messages.push(msg);
+            saveToSession();
+            appendRowToDOM(msg, msg.senderId === currentUser.clientId);
+          }
+        }
+      } else if (packet.type === 'SYNC_REQUEST') {
+        if (packet.senderId !== currentUser.clientId && messages.length > 0) {
+          purgeExpiredMessages();
+          const syncPacket = {
+            type: 'SYNC_RESPONSE',
+            targetId: packet.senderId,
+            senderId: currentUser.clientId,
+            room: currentUser.room,
+            payload: messages
+          };
+          const topic = `corp_excel_v2_room/${encodeURIComponent(currentUser.room)}`;
+          if (mqttClient && mqttClient.connected) {
+            mqttClient.publish(topic, JSON.stringify(syncPacket));
+          }
+        }
+      } else if (packet.type === 'SYNC_RESPONSE') {
+        if (packet.targetId === currentUser.clientId && Array.isArray(packet.payload)) {
+          let updated = false;
+          packet.payload.forEach(msg => {
+            if (Date.now() - msg.timestamp < FOUR_HOURS_MS) {
+              if (!messages.some(m => m.id === msg.id)) {
+                messages.push(msg);
+                updated = true;
+              }
             }
           });
-          peerConnections.push(conn);
-        });
-      } catch (err) {
-        console.warn('使用 BroadcastChannel 本地通訊', err);
+          if (updated) {
+            messages.sort((a, b) => a.timestamp - b.timestamp);
+            saveToSession();
+            rebuildTable();
+          }
+        }
       }
-    }
-
-    function reconnectRoom() {
-      const newRoom = document.getElementById('roomInput').value.trim() || 'FIN-2026-HQ';
-      currentUser.room = newRoom;
-      localStorage.setItem('excel_chat_room', newRoom);
-      initCommunication();
-      alert(`已成功切換至專案群組：[${newRoom}]！`);
     }
 
     function sendMessage() {
@@ -890,50 +995,61 @@
       const randomTag = JARGON_TAGS[Math.floor(Math.random() * JARGON_TAGS.length)];
 
       const msgObj = {
-        id: Date.now(),
+        id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        timestamp: Date.now(),
         time: timeStr,
         sender: currentUser.nickname,
         dept: currentUser.dept,
+        senderId: currentUser.clientId,
         text: displayText,
         tag: randomTag,
         cost: randomCost,
         status: '已覆核'
       };
 
-      renderNewRow(msgObj, true);
+      messages.push(msgObj);
+      saveToSession();
+      appendRowToDOM(msgObj, true);
       input.value = '';
 
+      const packet = {
+        type: 'CHAT_MESSAGE',
+        senderId: currentUser.clientId,
+        room: currentUser.room,
+        payload: msgObj
+      };
+
       if (localBroadcast) {
-        localBroadcast.postMessage({ type: 'NEW_MESSAGE', payload: msgObj });
+        localBroadcast.postMessage(packet);
       }
 
-      peerConnections.forEach(conn => {
-        if (conn.open) conn.send({ type: 'NEW_MESSAGE', payload: msgObj });
-      });
+      const topic = `corp_excel_v2_room/${encodeURIComponent(currentUser.room)}`;
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish(topic, JSON.stringify(packet));
+      }
     }
 
-    function renderNewRow(msg, isSelf) {
-      messages.push(msg);
+    function appendRowToDOM(msg, isSelf) {
       const tbody = document.getElementById('chatTableBody');
+      const rowIndex = tbody.children.length + 1;
       const tr = document.createElement('tr');
       tr.className = 'chat-row';
-      tr.id = 'row-' + currentRowIndex;
+      tr.id = 'row-' + rowIndex;
+      tr.dataset.rowIndex = rowIndex;
 
       tr.onclick = () => {
         document.querySelectorAll('.chat-row').forEach(r => r.classList.remove('selected'));
         tr.classList.add('selected');
-        document.getElementById('activeCellLabel').innerText = 'D' + tr.dataset.rowIndex;
+        document.getElementById('activeCellLabel').innerText = 'D' + rowIndex;
       };
 
-      tr.dataset.rowIndex = currentRowIndex;
-
       tr.innerHTML = `
-        <td class="col-row-idx">${currentRowIndex}</td>
+        <td class="col-row-idx">${rowIndex}</td>
         <td class="col-time">${msg.time}</td>
         <td class="col-sender" style="${isSelf ? 'color: #0b552c; font-weight:bold;' : ''}">
-          ${msg.sender} ${isSelf ? '★' : ''}
+          ${escapeHtml(msg.sender)} ${isSelf ? '★' : ''}
         </td>
-        <td class="col-dept">${msg.dept}</td>
+        <td class="col-dept">${escapeHtml(msg.dept)}</td>
         <td class="col-msg">${escapeHtml(msg.text)}</td>
         <td class="col-tag"><code>${msg.tag}</code></td>
         <td class="col-cost">$ ${msg.cost.toLocaleString()}</td>
@@ -943,12 +1059,50 @@
       `;
 
       tbody.appendChild(tr);
-      currentRowIndex++;
 
       const container = document.getElementById('tableContainer');
       container.scrollTop = container.scrollHeight;
-      document.getElementById('activeCellLabel').innerText = 'D' + (currentRowIndex - 1);
+      document.getElementById('activeCellLabel').innerText = 'D' + rowIndex;
+
       updateStats();
+    }
+
+    function rebuildTable() {
+      const tbody = document.getElementById('chatTableBody');
+      tbody.innerHTML = '';
+      messages.forEach(msg => {
+        appendRowToDOM(msg, msg.senderId === currentUser.clientId);
+      });
+      updateStats();
+    }
+
+    function purgeExpiredMessages() {
+      const now = Date.now();
+      const beforeCount = messages.length;
+      messages = messages.filter(m => (now - m.timestamp) < FOUR_HOURS_MS);
+
+      if (messages.length !== beforeCount) {
+        saveToSession();
+        rebuildTable();
+      }
+    }
+
+    function saveToSession() {
+      try {
+        sessionStorage.setItem('excel_cached_msgs', JSON.stringify(messages));
+      } catch(e){}
+    }
+
+    function loadFromSession() {
+      try {
+        const cached = sessionStorage.getItem('excel_cached_msgs');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          const now = Date.now();
+          messages = parsed.filter(m => (now - m.timestamp) < FOUR_HOURS_MS);
+          rebuildTable();
+        }
+      } catch(e){}
     }
 
     function updateStats() {
@@ -962,8 +1116,15 @@
     }
 
     function toggleBossMode() {
-      const screen = document.getElementById('bossScreen');
-      screen.classList.toggle('active');
+      document.getElementById('bossScreen').classList.toggle('active');
+    }
+
+    function manualClear() {
+      if (confirm('確定要立刻銷毀本機目前的所有聊天與公務備註紀錄嗎？')) {
+        messages = [];
+        sessionStorage.removeItem('excel_cached_msgs');
+        rebuildTable();
+      }
     }
 
     function exportToCSV() {
@@ -981,27 +1142,8 @@
       URL.revokeObjectURL(url);
     }
 
-    function clearMessages() {
-      if (confirm('確定要清空目前的試算表工作紀錄嗎？')) {
-        messages = [];
-        currentRowIndex = 1;
-        document.getElementById('chatTableBody').innerHTML = '';
-        updateStats();
-      }
-    }
-
-    function loadDemoMessages() {
-      const demos = [
-        { time: '09:12:04', sender: '張處長', dept: '財務總部', text: '[部門呈報] 各位同仁請檢視今日晨會之各項開支預算。', tag: '4302-行政流程優化', cost: 12000, status: '已覆核' },
-        { time: '09:15:22', sender: '林襄理', dept: '資訊工程處', text: '[專案追蹤] 伺服器機房冷卻空調年度維護合約已審查完畢。', tag: '5109-設備升級折舊', cost: 45000, status: '已覆核' },
-        { time: '09:18:40', sender: '陳專員', dept: '全球行銷部', text: '大家中午要訂哪一家便當？聽說巷口新開的那間排骨飯很讚', tag: '6204-差旅公關交際', cost: 1500, status: '已覆核' },
-        { time: '09:20:11', sender: '黃副理', dept: '策略營運組', text: '+1 我要雞腿便當，飲料喝無糖綠微冰。', tag: '7102-日常營運耗損', cost: 1800, status: '已覆核' }
-      ];
-      demos.forEach(d => renderNewRow(d, false));
-    }
-
     function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, function(m) {
+      return String(str).replace(/[&<>"']/g, function(m) {
         return {
           '&': '&amp;',
           '<': '&lt;',
