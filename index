@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026年度各部門預算與專案進度追蹤總表.xlsx - Excel</title>
+  <!-- PeerJS 免費 WebRTC 通訊庫，支援跨電腦即時連線 -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    :root {
+      --excel-green: #107c41;
+      --excel-green-dark: #0b552c;
+      --excel-green-light: #e8f5e9;
+      --ribbon-bg: #f3f2f1;
+      --border-gray: #d4d4d4;
+      --cell-border: #e1dfdd;
+      --header-bg: #f8f9fa;
+      --header-text: #495057;
+      --select-border: #107c41;
+      --text-main: #212529;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", "微軟正黑體", Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: #ffffff;
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 12px;
+    }
+
+    /* 頂部 Excel 標題列 */
+    .title-bar {
+      background-color: var(--excel-green);
+      color: white;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-icon {
+      font-weight: 900;
+      background: white;
+      color: var(--excel-green);
+      width: 20px;
+      height: 20px;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .auto-save {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .file-title {
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .title-center {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 4px 14px;
+      width: 320px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      cursor: text;
+    }
+
+    .title-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .boss-key-btn {
+      background: #dc3545;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+    .boss-key-btn:hover { background: #b02a37; }
+
+    /* 功能區選單分頁 (Ribbon Tabs) */
+    .ribbon-tabs {
+      background-color: var(--excel-green);
+      display: flex;
+      padding: 0 10px;
+      color: white;
+      font-size: 12px;
+    }
+
+    .ribbon-tab {
+      padding: 6px 14px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      opacity: 0.9;
+    }
+
+    .ribbon-tab.active {
+      background: var(--ribbon-bg);
+      color: var(--excel-green);
+      font-weight: 600;
+      border-bottom: 3px solid var(--excel-green);
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      opacity: 1;
+    }
+
+    /* 工具列 (Ribbon Toolbar) */
+    .ribbon-toolbar {
+      background: var(--ribbon-bg);
+      border-bottom: 1px solid var(--border-gray);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 2px 10px;
+      gap: 12px;
+      overflow-x: auto;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-right: 1px solid #ddd;
+      padding-right: 10px;
+      height: 100%;
+    }
+
+    .btn-tool {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 4px 6px;
+      border-radius: 2px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 10px;
+      color: #333;
+    }
+    .btn-tool:hover { background: #e5e5e5; border-color: #ccc; }
+
+    /* 公式列 (發言輸入框) */
+    .formula-bar-container {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-bottom: 1px solid var(--border-gray);
+      height: 32px;
+      padding: 2px 8px;
+      gap: 8px;
+    }
+
+    .name-box {
+      width: 75px;
+      height: 24px;
+      border: 1px solid var(--border-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #444;
+      background: #fafafa;
+      font-size: 12px;
+    }
+
+    .formula-icon {
+      font-style: italic;
+      font-family: "Times New Roman", serif;
+      font-weight: bold;
+      color: #777;
+      font-size: 15px;
+      padding: 0 4px;
+    }
+
+    .formula-input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .formula-input {
+      width: 100%;
+      height: 24px;
+      border: 1px solid transparent;
+      padding: 0 8px;
+      font-size: 12px;
+      outline: none;
+      user-select: text;
+    }
+
+    .formula-input:focus {
+      border: 1px solid var(--select-border);
+      background: #fff;
+    }
+
+    .formula-hint {
+      position: absolute;
+      right: 8px;
+      font-size: 11px;
+      color: #888;
+      pointer-events: none;
+    }
+
+    /* 試算表主體區 */
+    .sheet-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: white;
+      position: relative;
+    }
+
+    .table-container {
+      flex: 1;
+      overflow-y: scroll;
+      overflow-x: auto;
+      background: #fff;
+    }
+
+    table.excel-table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+
+    table.excel-table th, table.excel-table td {
+      border: 1px solid var(--cell-border);
+      padding: 5px 8px;
+      height: 28px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    table.excel-table th {
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 600;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 2px solid #bbb;
+    }
+
+    .col-row-idx { width: 45px; background: #f0f0f0; text-align: center; color: #777; }
+    .col-time { width: 90px; text-align: center; color: #666; font-family: monospace; }
+    .col-sender { width: 130px; font-weight: 600; color: #1e3a8a; }
+    .col-dept { width: 100px; text-align: center; color: #555; }
+    .col-msg { width: auto; color: #111; user-select: text; }
+    .col-tag { width: 130px; text-align: center; font-size: 11px; }
+    .col-cost { width: 95px; text-align: right; font-family: monospace; color: #0f5132; }
+    .col-status { width: 85px; text-align: center; }
+
+    tr.chat-row:hover td {
+      background-color: #f7fafc;
+    }
+
+    tr.chat-row.selected td {
+      outline: 2px solid var(--select-border);
+      outline-offset: -2px;
+      background: rgba(16, 124, 65, 0.04);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .badge-ok { background: #d1e7dd; color: #0f5132; }
+
+    /* 底部狀態列與分頁標籤 */
+    .bottom-bar {
+      background: #f3f2f1;
+      border-top: 1px solid var(--border-gray);
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 11px;
+      color: #555;
+    }
+
+    .sheet-tabs {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .sheet-tab {
+      padding: 4px 16px;
+      background: #e1dfdd;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .sheet-tab.active {
+      background: white;
+      color: var(--excel-green);
+      font-weight: bold;
+      border-bottom: 2px solid white;
+    }
+
+    .status-stats {
+      display: flex;
+      gap: 16px;
+      font-family: monospace;
+    }
+
+    /* 登入彈跳視窗 (Office 協同認證風格) */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .excel-modal {
+      background: white;
+      width: 440px;
+      border: 1px solid #888;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: var(--excel-green);
+      color: white;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input, .form-group select {
+      padding: 6px 8px;
+      border: 1px solid #aaa;
+      border-radius: 2px;
+      font-size: 12px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--excel-green);
+    }
+
+    .modal-footer {
+      background: #f8f9fa;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid #ddd;
+    }
+
+    .btn-primary {
+      background: var(--excel-green);
+      color: white;
+      border: 1px solid var(--excel-green-dark);
+      padding: 6px 18px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--excel-green-dark); }
+
+    /* 老闆鍵畫面 (正式財務分析報告) */
+    .boss-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #f8f9fa;
+      z-index: 99999;
+      display: none;
+      flex-direction: column;
+      padding: 24px 32px;
+      overflow-y: auto;
+      user-select: text;
+    }
+
+    .boss-screen.active {
+      display: flex;
+    }
+
+    .boss-header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .boss-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-left: 4px solid var(--excel-green);
+    }
+
+    .kpi-title { font-size: 12px; color: #666; margin-bottom: 6px; }
+    .kpi-val { font-size: 24px; font-weight: bold; font-family: monospace; color: #111; }
+    .kpi-change { font-size: 11px; color: #198754; font-weight: bold; margin-top: 4px; }
+
+    .boss-table-box {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部 Excel 標題列 -->
+  <div class="title-bar">
+    <div class="title-left">
+      <div class="app-icon">X</div>
+      <div class="auto-save">
+        <span>自動儲存</span>
+        <span style="color:#a7f3d0;">● 開啟</span>
+      </div>
+      <div class="file-title">2026年度各部門預算與專案進度追蹤總表.xlsx - Excel</div>
+    </div>
+    <div class="title-center">
+      <span>🔍</span>
+      <span>搜尋專案、公式、分析 (Alt+Q)</span>
+    </div>
+    <div class="title-right">
+      <button class="boss-key-btn" onclick="toggleBossMode()" title="緊急切換正經財務報表 (ESC 鍵)">
+        <span>⚠️ 老闆鍵 (ESC)</span>
+      </button>
+      <span id="userStatusTag" style="font-size:11px; opacity:0.9;">未登入帳號</span>
+      <span style="cursor:pointer;" onclick="showLoginModal()">👤</span>
+    </div>
+  </div>
+
+  <!-- Ribbon 功能區選單標籤 -->
+  <div class="ribbon-tabs">
+    <div class="ribbon-tab">檔案</div>
+    <div class="ribbon-tab active">常用</div>
+    <div class="ribbon-tab">插入</div>
+    <div class="ribbon-tab">繪圖</div>
+    <div class="ribbon-tab">版面配置</div>
+    <div class="ribbon-tab">公式</div>
+    <div class="ribbon-tab">資料</div>
+    <div class="ribbon-tab">校閱</div>
+    <div class="ribbon-tab">檢視</div>
+  </div>
+
+  <!-- Ribbon 工具列 -->
+  <div class="ribbon-toolbar">
+    <div class="toolbar-group">
+      <button class="btn-tool" onclick="exportToCSV()">
+        <span style="font-size:16px;">📥</span>
+        <span>匯出報表</span>
+      </button>
+      <button class="btn-tool" onclick="clearMessages()">
+        <span style="font-size:16px;">🧹</span>
+        <span>清除資料</span>
+      </button>
+    </div>
+
+    <div class="toolbar-group">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <select style="font-size:11px; padding:2px;">
+          <option>微軟正黑體</option>
+          <option>Calibri</option>
+          <option>Segoe UI</option>
+        </select>
+        <div style="display:flex; gap:3px;">
+          <button style="font-weight:bold; width:20px; font-size:10px;">B</button>
+          <button style="font-style:italic; width:20px; font-size:10px;">I</button>
+          <button style="text-decoration:underline; width:20px; font-size:10px;">U</button>
+          <button style="border:1px solid #bbb; width:20px; font-size:10px;">田</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar-group">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="jargonFilter" checked style="cursor:pointer;">
+        <label for="jargonFilter" style="font-size:11px; cursor:pointer; color:#333;">
+          自動添加公文術語 (混淆模式)
+        </label>
+      </div>
+    </div>
+
+    <div class="toolbar-group" style="border:none;">
+      <span style="font-size:11px; color:#555;">頻道群組代碼:</span>
+      <input type="text" id="roomInput" value="FIN-2026-HQ" style="width:110px; font-size:11px; padding:2px 4px; border:1px solid #bbb;" />
+      <button class="btn-tool" onclick="reconnectRoom()" style="padding:2px 8px; flex-direction:row; gap:3px;">
+        <span>🔄</span><span>切換群組</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 公式列 (核心發言輸入框) -->
+  <div class="formula-bar-container">
+    <div class="name-box" id="activeCellLabel">B1</div>
+    <div class="formula-icon">fx</div>
+    <div class="formula-input-wrapper">
+      <input 
+        type="text" 
+        id="formulaInput" 
+        class="formula-input" 
+        placeholder="在此輸入試算表備註 / 聊天內容... (按 Enter 提交並寫入儲存格)"
+        autocomplete="off"
+      />
+      <div class="formula-hint">按 Enter 鍵發送備註</div>
+    </div>
+  </div>
+
+  <!-- Excel 儲存格資料表 (聊天紀錄顯示區) -->
+  <div class="sheet-wrapper">
+    <div class="table-container" id="tableContainer">
+      <table class="excel-table" id="excelTable">
+        <thead>
+          <tr>
+            <th class="col-row-idx"></th>
+            <th class="col-time">A (記錄時間)</th>
+            <th class="col-sender">B (經辦人員 / 暱稱)</th>
+            <th class="col-dept">C (所屬部門)</th>
+            <th class="col-msg">D (項目說明 / 訊息內文)</th>
+            <th class="col-tag">E (會計分類代碼)</th>
+            <th class="col-cost">F (預算金額 NT$)</th>
+            <th class="col-status">G (審查覆核)</th>
+          </tr>
+        </thead>
+        <tbody id="chatTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 底部工作表頁籤與狀態數據列 -->
+  <div class="bottom-bar">
+    <div class="sheet-tabs">
+      <div class="sheet-tab active">2026_Q4預算執行表</div>
+      <div class="sheet-tab">固定資產折舊</div>
+      <div class="sheet-tab">內部審計稽核</div>
+      <span style="cursor:pointer; font-size:14px; margin-left:6px; color:#777;">＋</span>
+    </div>
+    <div class="status-stats">
+      <span>就緒</span>
+      <span>|</span>
+      <span>項目計數: <b id="statCount">0</b></span>
+      <span>|</span>
+      <span>加總: <b id="statSum">$ 0</b></span>
+      <span>|</span>
+      <span>平均: <b id="statAvg">$ 0</b></span>
+      <span>|</span>
+      <span>100% ⊕</span>
+    </div>
+  </div>
+
+  <!-- 登入 / 暱稱設定視窗 -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="excel-modal">
+      <div class="modal-header">
+        <span>Microsoft Excel - 組織專案協同認證</span>
+        <span style="cursor:pointer;" onclick="closeModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <p style="color:#555; line-height:1.4;">
+          歡迎存取內部共用活頁簿。請登記您的同仁暱稱與部門單位，以便在試算表修訂紀錄中留下審核簽章。
+        </p>
+        <div class="form-group">
+          <label>經辦人暱稱 / 同仁姓名 <span style="color:red;">*</span></label>
+          <input type="text" id="nicknameInput" placeholder="例如：陳專員、摸魚大師、Alex" />
+        </div>
+        <div class="form-group">
+          <label>所屬單位 / 專案組</label>
+          <select id="deptInput">
+            <option value="財務總部">財務總部 (Finance HQ)</option>
+            <option value="資訊工程處">資訊工程處 (IT Dev)</option>
+            <option value="全球行銷部">全球行銷部 (Global MKT)</option>
+            <option value="策略營運組">策略營運組 (Strategy Ops)</option>
+            <option value="人事稽核室">人事稽核室 (HR & Audit)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>共用頻道代碼 (會議室 Room ID)</label>
+          <input type="text" id="modalRoomInput" value="FIN-2026-HQ" />
+          <small style="color:#777;">同群組的人輸入相同代碼即可直接連線聊天</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="confirmLogin()">進入試算表 (開始協同)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 老闆鍵畫面 (ESC 鍵秒切換) -->
+  <div class="boss-screen" id="bossScreen">
+    <div class="boss-header">
+      <div>
+        <h2 style="font-size:22px; margin-bottom:4px;">2026 Q3-Q4 集團營業收入與現金流綜合評估分析報告</h2>
+        <p style="color:#555; font-size:12px;">機密等級：內部核心經理人限定 (內部稽核代號：AUD-99218-X)</p>
+      </div>
+      <div>
+        <button class="btn-primary" style="background:#555; border:none;" onclick="toggleBossMode()">返回作業 (ESC)</button>
+      </div>
+    </div>
+
+    <div class="boss-kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">本季合併總營收 (NTD)</div>
+        <div class="kpi-val">$ 84,291,400</div>
+        <div class="kpi-change">▲ +14.8% YoY 成長</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">營業毛利率 (Gross Margin)</div>
+        <div class="kpi-val">42.6 %</div>
+        <div class="kpi-change">▲ +2.1% 優於預期</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">息稅折舊攤銷前淨利 (EBITDA)</div>
+        <div class="kpi-val">$ 21,950,000</div>
+        <div class="kpi-change">▲ +8.4% 健全穩定</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">研發與營運成本控管率</div>
+        <div class="kpi-val">19.2 %</div>
+        <div class="kpi-change" style="color:#0d6efd;">▼ 減少 1.5% 成本節省</div>
+      </div>
+    </div>
+
+    <div class="boss-table-box">
+      <h3 style="font-size:14px; margin-bottom:12px;">年度各事業群利潤分析明細表 (單位：千元)</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:12px;" border="1" bordercolor="#e0e0e0">
+        <thead style="background:#f0f2f5;">
+          <tr style="height:32px;">
+            <th style="padding:6px;">部門代號</th>
+            <th style="padding:6px;">事業單位名稱</th>
+            <th style="padding:6px; text-align:right;">核定預算</th>
+            <th style="padding:6px; text-align:right;">實際開支</th>
+            <th style="padding:6px; text-align:right;">執行率</th>
+            <th style="padding:6px; text-align:center;">內部審計評價</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="height:30px;"><td style="padding:6px; text-align:center;">BU-01</td><td style="padding:6px;">雲端伺服架構研發中心</td><td style="padding:6px; text-align:right;">$ 32,500</td><td style="padding:6px; text-align:right;">$ 30,120</td><td style="padding:6px; text-align:right;">92.6%</td><td style="padding:6px; text-align:center; color:#198754;">A級 優良</td></tr>
+          <tr style="height:30px;"><td style="padding:6px; text-align:center;">BU-02</td><td style="padding:6px;">亞太新市場推進專案部</td><td style="padding:6px; text-align:right;">$ 18,000</td><td style="padding:6px; text-align:right;">$ 17,650</td><td style="padding:6px; text-align:right;">98.0%</td><td style="padding:6px; text-align:center; color:#198754;">A級 達標</td></tr>
+          <tr style="height:30px;"><td style="padding:6px; text-align:center;">BU-03</td><td style="padding:6px;">全球供應鏈物流管控處</td><td style="padding:6px; text-align:right;">$ 24,000</td><td style="padding:6px; text-align:right;">$ 21,800</td><td style="padding:6px; text-align:right;">90.8%</td><td style="padding:6px; text-align:center; color:#198754;">A級 撙節</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = {
+      nickname: localStorage.getItem('excel_chat_nickname') || '',
+      dept: localStorage.getItem('excel_chat_dept') || '財務總部',
+      room: localStorage.getItem('excel_chat_room') || 'FIN-2026-HQ'
+    };
+
+    let messages = [];
+    let currentRowIndex = 1;
+    let peer = null;
+    let peerConnections = [];
+    let localBroadcast = null;
+
+    const JARGON_TAGS = [
+      "7102-日常營運耗損",
+      "6204-差旅公關交際",
+      "5109-設備升級折舊",
+      "8031-外部專案委任",
+      "4302-行政流程優化",
+      "9110-突發風險備援"
+    ];
+
+    const JARGON_PREFIXES = [
+      "[覆核備忘] ",
+      "[專案追蹤] ",
+      "[稽核確認] ",
+      "[進度匯報] ",
+      "[部門呈報] "
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('roomInput').value = currentUser.room;
+      document.getElementById('modalRoomInput').value = currentUser.room;
+
+      if (!currentUser.nickname) {
+        showLoginModal();
+      } else {
+        updateUserUI();
+        initCommunication();
+      }
+
+      document.getElementById('formulaInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          toggleBossMode();
+        }
+      });
+
+      if (messages.length === 0) {
+        loadDemoMessages();
+      }
+    });
+
+    function showLoginModal() {
+      document.getElementById('loginModal').style.display = 'flex';
+      document.getElementById('nicknameInput').value = currentUser.nickname;
+      document.getElementById('deptInput').value = currentUser.dept;
+      setTimeout(() => document.getElementById('nicknameInput').focus(), 100);
+    }
+
+    function closeModal() {
+      if (!currentUser.nickname) {
+        currentUser.nickname = '訪客同仁_' + Math.floor(100 + Math.random() * 900);
+        updateUserUI();
+        initCommunication();
+      }
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function confirmLogin() {
+      const name = document.getElementById('nicknameInput').value.trim();
+      const dept = document.getElementById('deptInput').value;
+      const room = document.getElementById('modalRoomInput').value.trim() || 'FIN-2026-HQ';
+
+      if (!name) {
+        alert('請填寫經辦人員暱稱！');
+        return;
+      }
+
+      currentUser.nickname = name;
+      currentUser.dept = dept;
+      currentUser.room = room;
+
+      localStorage.setItem('excel_chat_nickname', name);
+      localStorage.setItem('excel_chat_dept', dept);
+      localStorage.setItem('excel_chat_room', room);
+
+      document.getElementById('roomInput').value = room;
+      updateUserUI();
+      document.getElementById('loginModal').style.display = 'none';
+      initCommunication();
+    }
+
+    function updateUserUI() {
+      document.getElementById('userStatusTag').innerText = `👤 ${currentUser.nickname} (${currentUser.dept})`;
+    }
+
+    function initCommunication() {
+      if (localBroadcast) localBroadcast.close();
+      localBroadcast = new BroadcastChannel('excel_chat_' + currentUser.room);
+      localBroadcast.onmessage = (event) => {
+        if (event.data && event.data.type === 'NEW_MESSAGE') {
+          renderNewRow(event.data.payload, false);
+        }
+      };
+
+      initPeerJS();
+    }
+
+    function initPeerJS() {
+      try {
+        if (peer) peer.destroy();
+        const myPeerId = 'excel_user_' + Math.random().toString(36).substr(2, 9);
+        peer = new Peer(myPeerId);
+
+        peer.on('connection', (conn) => {
+          conn.on('data', (data) => {
+            if (data && data.type === 'NEW_MESSAGE') {
+              renderNewRow(data.payload, false);
+            }
+          });
+          peerConnections.push(conn);
+        });
+      } catch (err) {
+        console.warn('使用 BroadcastChannel 本地通訊', err);
+      }
+    }
+
+    function reconnectRoom() {
+      const newRoom = document.getElementById('roomInput').value.trim() || 'FIN-2026-HQ';
+      currentUser.room = newRoom;
+      localStorage.setItem('excel_chat_room', newRoom);
+      initCommunication();
+      alert(`已成功切換至專案群組：[${newRoom}]！`);
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('formulaInput');
+      let text = input.value.trim();
+      if (!text) return;
+
+      const isJargon = document.getElementById('jargonFilter').checked;
+      let displayText = text;
+
+      if (isJargon && !text.startsWith('[')) {
+        const randomPrefix = JARGON_PREFIXES[Math.floor(Math.random() * JARGON_PREFIXES.length)];
+        displayText = randomPrefix + text;
+      }
+
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const randomCost = Math.floor(Math.random() * 85 + 10) * 100;
+      const randomTag = JARGON_TAGS[Math.floor(Math.random() * JARGON_TAGS.length)];
+
+      const msgObj = {
+        id: Date.now(),
+        time: timeStr,
+        sender: currentUser.nickname,
+        dept: currentUser.dept,
+        text: displayText,
+        tag: randomTag,
+        cost: randomCost,
+        status: '已覆核'
+      };
+
+      renderNewRow(msgObj, true);
+      input.value = '';
+
+      if (localBroadcast) {
+        localBroadcast.postMessage({ type: 'NEW_MESSAGE', payload: msgObj });
+      }
+
+      peerConnections.forEach(conn => {
+        if (conn.open) conn.send({ type: 'NEW_MESSAGE', payload: msgObj });
+      });
+    }
+
+    function renderNewRow(msg, isSelf) {
+      messages.push(msg);
+      const tbody = document.getElementById('chatTableBody');
+      const tr = document.createElement('tr');
+      tr.className = 'chat-row';
+      tr.id = 'row-' + currentRowIndex;
+
+      tr.onclick = () => {
+        document.querySelectorAll('.chat-row').forEach(r => r.classList.remove('selected'));
+        tr.classList.add('selected');
+        document.getElementById('activeCellLabel').innerText = 'D' + tr.dataset.rowIndex;
+      };
+
+      tr.dataset.rowIndex = currentRowIndex;
+
+      tr.innerHTML = `
+        <td class="col-row-idx">${currentRowIndex}</td>
+        <td class="col-time">${msg.time}</td>
+        <td class="col-sender" style="${isSelf ? 'color: #0b552c; font-weight:bold;' : ''}">
+          ${msg.sender} ${isSelf ? '★' : ''}
+        </td>
+        <td class="col-dept">${msg.dept}</td>
+        <td class="col-msg">${escapeHtml(msg.text)}</td>
+        <td class="col-tag"><code>${msg.tag}</code></td>
+        <td class="col-cost">$ ${msg.cost.toLocaleString()}</td>
+        <td class="col-status">
+          <span class="status-badge badge-ok">${msg.status}</span>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      currentRowIndex++;
+
+      const container = document.getElementById('tableContainer');
+      container.scrollTop = container.scrollHeight;
+      document.getElementById('activeCellLabel').innerText = 'D' + (currentRowIndex - 1);
+      updateStats();
+    }
+
+    function updateStats() {
+      const count = messages.length;
+      const sum = messages.reduce((acc, cur) => acc + (cur.cost || 0), 0);
+      const avg = count > 0 ? Math.round(sum / count) : 0;
+
+      document.getElementById('statCount').innerText = count;
+      document.getElementById('statSum').innerText = '$ ' + sum.toLocaleString();
+      document.getElementById('statAvg').innerText = '$ ' + avg.toLocaleString();
+    }
+
+    function toggleBossMode() {
+      const screen = document.getElementById('bossScreen');
+      screen.classList.toggle('active');
+    }
+
+    function exportToCSV() {
+      let csv = "\uFEFF列號,時間,經辦人員,部門,項目說明,會計代碼,預算金額,審核狀態\n";
+      messages.forEach((m, idx) => {
+        csv += `"${idx+1}","${m.time}","${m.sender}","${m.dept}","${m.text.replace(/"/g, '""')}","${m.tag}","${m.cost}","${m.status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `2026_Q4_財務預算審核表_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearMessages() {
+      if (confirm('確定要清空目前的試算表工作紀錄嗎？')) {
+        messages = [];
+        currentRowIndex = 1;
+        document.getElementById('chatTableBody').innerHTML = '';
+        updateStats();
+      }
+    }
+
+    function loadDemoMessages() {
+      const demos = [
+        { time: '09:12:04', sender: '張處長', dept: '財務總部', text: '[部門呈報] 各位同仁請檢視今日晨會之各項開支預算。', tag: '4302-行政流程優化', cost: 12000, status: '已覆核' },
+        { time: '09:15:22', sender: '林襄理', dept: '資訊工程處', text: '[專案追蹤] 伺服器機房冷卻空調年度維護合約已審查完畢。', tag: '5109-設備升級折舊', cost: 45000, status: '已覆核' },
+        { time: '09:18:40', sender: '陳專員', dept: '全球行銷部', text: '大家中午要訂哪一家便當？聽說巷口新開的那間排骨飯很讚', tag: '6204-差旅公關交際', cost: 1500, status: '已覆核' },
+        { time: '09:20:11', sender: '黃副理', dept: '策略營運組', text: '+1 我要雞腿便當，飲料喝無糖綠微冰。', tag: '7102-日常營運耗損', cost: 1800, status: '已覆核' }
+      ];
+      demos.forEach(d => renderNewRow(d, false));
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+  </script>
+</body>
+</html>
