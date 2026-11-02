@@ -103,7 +103,6 @@
       gap: 14px;
     }
 
-    /* 偽裝成原生 Excel 功能的低調深綠色按鈕 */
     .boss-key-btn {
       background: rgba(255, 255, 255, 0.12);
       color: #e8f5e9;
@@ -294,7 +293,6 @@
       border-bottom: 2px solid #bbb;
     }
 
-    /* 各欄位寬度與對齊設定 */
     .col-row-idx { width: 45px; background: #f0f0f0; text-align: center; color: #777; }
     .col-date { width: 85px; text-align: center; font-family: monospace; }
     .col-size { width: 55px; text-align: center; }
@@ -583,7 +581,6 @@
       </div>
     </div>
 
-    <!-- 固定的全體同仁共用頻道指示 -->
     <div class="toolbar-group" style="border:none;">
       <div class="fixed-room-badge" title="所有人打開網頁皆預設連進此固定頻道，免對暗號">
         <span>🏢 預設公用頻道：</span>
@@ -664,7 +661,7 @@
       </div>
       <div class="modal-body">
         <p style="color:#555; line-height:1.4;">
-          設定您的經辦人員暱稱與站所。全體同仁預設將自動連入<b>同一間固定公用頻道</b>，資料於重新整理時依然保留，滿 4 小時自動銷毀。
+          設定您的經辦人員暱稱與站所。全體同仁預設將自動連入<b>同一間固定公用頻道</b>，無痕視窗下重新整理資料依然保留，滿 4 小時自動銷毀。
         </p>
         <div class="form-group">
           <label>經辦人暱稱 / 同仁姓名 <span style="color:red;">*</span></label>
@@ -687,7 +684,7 @@
     </div>
   </div>
 
-  <!-- 老闆鍵畫面 (ESC 鍵秒切換) -->
+  <!-- 老闆鍵畫面 -->
   <div class="boss-screen" id="bossScreen">
     <div class="boss-header">
       <div>
@@ -749,17 +746,21 @@
     const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
 
     let currentUser = {
-      nickname: localStorage.getItem('excel_user_nick') || '',
-      dept: localStorage.getItem('excel_user_dept') || '基隆',
+      nickname: '',
+      dept: '基隆',
       room: GLOBAL_DEFAULT_ROOM,
       clientId: 'client_' + Math.random().toString(36).substring(2, 9)
     };
+
+    try {
+      currentUser.nickname = localStorage.getItem('excel_user_nick') || sessionStorage.getItem('excel_user_nick') || '';
+      currentUser.dept = localStorage.getItem('excel_user_dept') || sessionStorage.getItem('excel_user_dept') || '基隆';
+    } catch(e) {}
 
     let messages = [];
     let mqttClient = null;
     let localBroadcast = null;
 
-    /* 隨機生成資料庫 */
     const SIZES = ["40", "20", "40HQ", "40", "40", "20"];
     const WEIGHTS = ["重", "重", "重", "空", "24.5", "21.8", "26.3", "20.5", "3.8", "25.2"];
     const TRUCK_PLATES = [
@@ -801,14 +802,10 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
-      if (window.location.hash && window.location.hash.length > 1) {
-        currentUser.room = decodeURIComponent(window.location.hash.substring(1));
-      } else {
-        currentUser.room = GLOBAL_DEFAULT_ROOM;
-      }
+      parseRoomAndStateFromURL();
       document.getElementById('displayRoomTag').innerText = currentUser.room;
 
-      // 載入持久化儲存（重新整理時優先載入本地未滿 4 小時之紀錄）
+      // 載入記錄（優先自 URL Hash / 儲存區讀取）
       loadSavedMessages();
 
       if (!currentUser.nickname) {
@@ -832,9 +829,32 @@
         }
       });
 
-      // 每 30 秒自動過濾並清理超過 4 小時的過期記錄
       setInterval(purgeExpiredMessages, 30000);
     });
+
+    // 解析 URL Hash 中的房間與資料（無痕視窗防丟關鍵）
+    function parseRoomAndStateFromURL() {
+      try {
+        const hash = window.location.hash.substring(1);
+        if (!hash) return;
+
+        const params = new URLSearchParams(hash);
+        if (params.has('room')) {
+          currentUser.room = params.get('room');
+        } else if (!hash.includes('=')) {
+          currentUser.room = decodeURIComponent(hash);
+        }
+
+        if (params.has('d')) {
+          const raw = decodeURIComponent(escape(atob(params.get('d'))));
+          const parsed = JSON.parse(raw);
+          const now = Date.now();
+          if (Array.isArray(parsed)) {
+            messages = parsed.filter(m => (now - m.timestamp) < FOUR_HOURS_MS);
+          }
+        }
+      } catch(e) {}
+    }
 
     function showLoginModal() {
       document.getElementById('loginModal').style.display = 'flex';
@@ -864,8 +884,12 @@
       currentUser.nickname = name;
       currentUser.dept = dept;
 
-      localStorage.setItem('excel_user_nick', name);
-      localStorage.setItem('excel_user_dept', dept);
+      try {
+        localStorage.setItem('excel_user_nick', name);
+        localStorage.setItem('excel_user_dept', dept);
+        sessionStorage.setItem('excel_user_nick', name);
+        sessionStorage.setItem('excel_user_dept', dept);
+      } catch(e){}
 
       updateUserUI();
       document.getElementById('loginModal').style.display = 'none';
@@ -885,12 +909,11 @@
       if (newRoom === currentUser.room) return;
 
       currentUser.room = newRoom;
-      window.location.hash = (newRoom === GLOBAL_DEFAULT_ROOM) ? '' : newRoom;
       document.getElementById('displayRoomTag').innerText = newRoom;
 
       messages = [];
       rebuildTable();
-      loadSavedMessages();
+      savePersistentMessages();
       initConnection();
     }
 
@@ -938,19 +961,15 @@
         try {
           const packet = JSON.parse(payload.toString());
           handleIncomingPacket(packet);
-        } catch (err) {
-          console.error('封包解析異常', err);
-        }
+        } catch (err) {}
       });
 
-      mqttClient.on('error', (err) => {
-        console.warn('MQTT 連線警告', err);
-        document.getElementById('connIndicator').innerText = '○ 離線重試中';
+      mqttClient.on('error', () => {
+        document.getElementById('connIndicator').innerText = '○ 離線模式';
         document.getElementById('connIndicator').style.color = '#ff6b6b';
       });
     }
 
-    // 核心安全修復：只做聯集比對合併，絕不整包刪除本地已有資料
     function handleIncomingPacket(packet) {
       if (!packet || packet.room !== currentUser.room) return;
 
@@ -1127,7 +1146,6 @@
       updateStats();
     }
 
-    // 清理超過 4 小時的過期記錄
     function purgeExpiredMessages() {
       const now = Date.now();
       const beforeCount = messages.length;
@@ -1139,17 +1157,38 @@
       }
     }
 
-    // 將資料持久化寫入 localStorage，確保重整後 100% 存在
+    // 核心雙重持久化：同時寫入 URL Hash + 本地 Storage，無痕視窗重新整理保證在！
     function savePersistentMessages() {
+      const json = JSON.stringify(messages);
       try {
-        localStorage.setItem('excel_saved_msgs_' + currentUser.room, JSON.stringify(messages));
+        localStorage.setItem('excel_saved_msgs_' + currentUser.room, json);
+        sessionStorage.setItem('excel_saved_msgs_' + currentUser.room, json);
+      } catch(e){}
+
+      try {
+        // 同步寫入網址 Hash（無痕模式按 F5 絕對不丟失）
+        const b64 = btoa(unescape(encodeURIComponent(json)));
+        const params = new URLSearchParams();
+        if (currentUser.room !== GLOBAL_DEFAULT_ROOM) {
+          params.set('room', currentUser.room);
+        }
+        if (messages.length > 0) {
+          params.set('d', b64);
+        }
+        const newHash = params.toString();
+        history.replaceState(null, '', newHash ? ('#' + newHash) : window.location.pathname);
       } catch(e){}
     }
 
-    // 重新整理時載入 (自動過濾超過 4 小時的記錄)
     function loadSavedMessages() {
+      if (messages.length > 0) {
+        rebuildTable();
+        return;
+      }
+
       try {
-        const cached = localStorage.getItem('excel_saved_msgs_' + currentUser.room);
+        const cached = localStorage.getItem('excel_saved_msgs_' + currentUser.room) || 
+                       sessionStorage.getItem('excel_saved_msgs_' + currentUser.room);
         if (cached) {
           const parsed = JSON.parse(cached);
           const now = Date.now();
@@ -1176,7 +1215,11 @@
     function manualClear() {
       if (confirm('確定要立刻清空本機的所有聊天備註紀錄嗎？')) {
         messages = [];
-        localStorage.removeItem('excel_saved_msgs_' + currentUser.room);
+        try {
+          localStorage.removeItem('excel_saved_msgs_' + currentUser.room);
+          sessionStorage.removeItem('excel_saved_msgs_' + currentUser.room);
+        } catch(e){}
+        history.replaceState(null, '', window.location.pathname);
         rebuildTable();
       }
     }
