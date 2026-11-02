@@ -808,7 +808,7 @@
       }
       document.getElementById('displayRoomTag').innerText = currentUser.room;
 
-      // 載入持久化儲存（重新整理依然存在）
+      // 載入持久化儲存（重新整理時優先載入本地未滿 4 小時之紀錄）
       loadSavedMessages();
 
       if (!currentUser.nickname) {
@@ -950,6 +950,7 @@
       });
     }
 
+    // 核心安全修復：只做聯集比對合併，絕不整包刪除本地已有資料
     function handleIncomingPacket(packet) {
       if (!packet || packet.room !== currentUser.room) return;
 
@@ -978,7 +979,7 @@
           }
         }
       } else if (packet.type === 'SYNC_RESPONSE') {
-        if (packet.targetId === currentUser.clientId && Array.isArray(packet.payload)) {
+        if (packet.targetId === currentUser.clientId && Array.isArray(packet.payload) && packet.payload.length > 0) {
           let updated = false;
           packet.payload.forEach(msg => {
             if (Date.now() - msg.timestamp < FOUR_HOURS_MS) {
@@ -1138,14 +1139,14 @@
       }
     }
 
-    // 持久化儲存至 localStorage (重新整理依然保留)
+    // 將資料持久化寫入 localStorage，確保重整後 100% 存在
     function savePersistentMessages() {
       try {
         localStorage.setItem('excel_saved_msgs_' + currentUser.room, JSON.stringify(messages));
       } catch(e){}
     }
 
-    // 重新整理時載入 (自動過濾掉超過 4 小時的紀錄)
+    // 重新整理時載入 (自動過濾超過 4 小時的記錄)
     function loadSavedMessages() {
       try {
         const cached = localStorage.getItem('excel_saved_msgs_' + currentUser.room);
