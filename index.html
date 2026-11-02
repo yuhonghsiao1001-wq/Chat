@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026年度貨櫃內陸運送運費請款核算明細表.xlsx - Excel</title>
-  <!-- MQTT 雲端即時連線庫 (免伺服器、跨電腦即時連線、純記憶體不存檔) -->
+  <!-- MQTT 雲端即時連線庫 (跨電腦連線、免架伺服器) -->
   <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
   <style>
     :root {
@@ -125,7 +125,7 @@
       background: rgba(0, 0, 0, 0.15);
     }
 
-    /* 功能區選單分頁 */
+    /* Ribbon 功能區選單分頁 */
     .ribbon-tabs {
       background-color: var(--excel-green);
       display: flex;
@@ -293,7 +293,7 @@
       border-bottom: 2px solid #bbb;
     }
 
-    /* 各欄位寬度與對齊設定 */
+    /* 各欄位設定 */
     .col-row-idx { width: 45px; background: #f0f0f0; text-align: center; color: #777; }
     .col-date { width: 85px; text-align: center; font-family: monospace; }
     .col-size { width: 55px; text-align: center; }
@@ -442,7 +442,7 @@
     }
     .btn-primary:hover { background: var(--excel-green-dark); }
 
-    /* 老闆鍵畫面 */
+    /* 老闆鍵畫面 (ESC 切換) */
     .boss-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -513,7 +513,7 @@
     <div class="title-left">
       <div class="app-icon">X</div>
       <div class="auto-save">
-        <span>無痕通道</span>
+        <span>雲端同步中</span>
         <span id="connIndicator" style="color:#a7f3d0;">● 連線中</span>
       </div>
       <div class="file-title">2026年度貨櫃內陸運送運費請款核算明細表.xlsx - Excel</div>
@@ -582,16 +582,17 @@
       </div>
     </div>
 
+    <!-- 固定的全體同仁共用頻道指示 -->
     <div class="toolbar-group" style="border:none;">
-      <div class="fixed-room-badge" title="所有人打開網頁皆預設連進此固定頻道，免對暗號">
+      <div class="fixed-room-badge" title="所有人打開網頁皆預設連進此固定頻道，跨電腦即時連線">
         <span>🏢 預設公用頻道：</span>
-        <span id="displayRoomTag" style="font-family:monospace; color:#0b552c;">CORP-GENERAL-HQ</span>
+        <span id="displayRoomTag" style="font-family:monospace; color:#0b552c;">CORP-LOGISTICS-HUB</span>
         <span style="font-size:10px; color:#555; cursor:pointer; text-decoration:underline;" onclick="promptChangeRoom()">[切換私密房]</span>
       </div>
     </div>
   </div>
 
-  <!-- 公式列 (發言輸入框) -->
+  <!-- 公式列 (核心發言輸入框) -->
   <div class="formula-bar-container">
     <div class="name-box" id="activeCellLabel">K1</div>
     <div class="formula-icon">fx</div>
@@ -600,14 +601,14 @@
         type="text" 
         id="formulaInput" 
         class="formula-input" 
-        placeholder="在此輸入試算表備註 / 聊天內容... (按 Enter 提交並寫入備註欄)" 
+        placeholder="在此輸入試算表備註 / 聊天內容... (按 Enter 提交並寫入「備註」欄)" 
         autocomplete="off"
       />
       <div class="formula-hint">按 Enter 鍵發送備註</div>
     </div>
   </div>
 
-  <!-- Excel 儲存格資料表 -->
+  <!-- Excel 儲存格資料表 (需求 1：11 個專用欄位) -->
   <div class="sheet-wrapper">
     <div class="table-container" id="tableContainer">
       <table class="excel-table" id="excelTable">
@@ -635,7 +636,7 @@
   <!-- 底部狀態列與分頁標籤 -->
   <div class="bottom-bar">
     <div class="sheet-tabs">
-      <div class="sheet-tab active">2026_Q4請款明細表</div>
+      <div class="sheet-tab active">2026_運費請款核算明細</div>
       <div class="sheet-tab">聯運外車費用拆分</div>
       <div class="sheet-tab">內部審計稽核</div>
       <span style="cursor:pointer; font-size:14px; margin-left:6px; color:#777;">＋</span>
@@ -662,7 +663,7 @@
       </div>
       <div class="modal-body">
         <p style="color:#555; line-height:1.4;">
-          設定您的經辦人員暱稱與站所。全體同仁預設將自動連入<b>同一間固定公用頻道</b>，資料於重新整理時依然保留，滿 4 小時自動銷毀。
+          設定您的經辦人員暱稱與所屬站所。全體同仁預設將自動連入<b>同一間固定公用頻道</b>，資料於重新整理時保留，滿 <b>24 小時</b>自動銷毀。
         </p>
         <div class="form-group">
           <label>經辦人暱稱 / 同仁姓名 <span style="color:red;">*</span></label>
@@ -685,7 +686,7 @@
     </div>
   </div>
 
-  <!-- 老闆鍵畫面 -->
+  <!-- 老闆鍵畫面 (ESC 鍵秒切換) -->
   <div class="boss-screen" id="bossScreen">
     <div class="boss-header">
       <div>
@@ -743,8 +744,9 @@
   </div>
 
   <script>
-    const GLOBAL_DEFAULT_ROOM = "CORP-GENERAL-HQ";
-    const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+    // 需求 2：設定聊天紀錄 24 小時清除 (24 * 60 * 60 * 1000 ms)
+    const GLOBAL_DEFAULT_ROOM = "CORP-LOGISTICS-HUB";
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
     let currentUser = {
       nickname: localStorage.getItem('excel_user_nick') || '',
@@ -757,7 +759,7 @@
     let mqttClient = null;
     let localBroadcast = null;
 
-    /* 隨機生成資料庫 */
+    /* 需求 1：依截圖實務產生的隨機資料庫 */
     const SIZES = ["40", "20", "40HQ", "40", "40", "20"];
     const WEIGHTS = ["重", "重", "重", "空", "24.5", "21.8", "26.3", "20.5", "3.8", "25.2"];
     const TRUCK_PLATES = [
@@ -799,7 +801,6 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
-      // 乾淨讀取房間
       if (window.location.hash && window.location.hash.length > 1) {
         currentUser.room = decodeURIComponent(window.location.hash.substring(1));
       } else {
@@ -807,7 +808,7 @@
       }
       document.getElementById('displayRoomTag').innerText = currentUser.room;
 
-      // 載入本地儲存（重新整理時優先讀取 4 小時內的紀錄）
+      // 需求 2：重整頁面立刻讀出 24 小時內的歷史資料
       loadSavedMessages();
 
       if (!currentUser.nickname) {
@@ -831,7 +832,7 @@
         }
       });
 
-      // 每 30 秒自動過濾並清理超過 4 小時的過期記錄
+      // 每 30 秒自動清掃一次滿 24 小時的過期記錄
       setInterval(purgeExpiredMessages, 30000);
     });
 
@@ -895,6 +896,7 @@
       initConnection();
     }
 
+    // 需求 2：跨電腦連線 (MQTT WebSocket)
     function initConnection() {
       if (localBroadcast) localBroadcast.close();
       localBroadcast = new BroadcastChannel('corp_excel_' + currentUser.room);
@@ -911,7 +913,7 @@
       document.getElementById('connStatusText').innerText = `正在加入 [${currentUser.room}]...`;
 
       const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
-      const topic = `corp_excel_v3_fixed/${encodeURIComponent(currentUser.room)}`;
+      const topic = `corp_excel_v24h_fixed/${encodeURIComponent(currentUser.room)}`;
 
       mqttClient = mqtt.connect(brokerUrl, {
         clientId: currentUser.clientId,
@@ -927,6 +929,7 @@
 
         mqttClient.subscribe(topic, { qos: 0 });
 
+        // 向所有在線電腦廣播請求同步最新歷史紀錄
         const reqPacket = {
           type: 'SYNC_REQUEST',
           senderId: currentUser.clientId,
@@ -939,29 +942,33 @@
         try {
           const packet = JSON.parse(payload.toString());
           handleIncomingPacket(packet);
-        } catch (err) {}
+        } catch (err) {
+          console.error('封包解析異常', err);
+        }
       });
 
-      mqttClient.on('error', () => {
-        document.getElementById('connIndicator').innerText = '○ 離線模式';
+      mqttClient.on('error', (err) => {
+        console.warn('MQTT 連線警告', err);
+        document.getElementById('connIndicator').innerText = '○ 離線重試中';
         document.getElementById('connIndicator').style.color = '#ff6b6b';
       });
     }
 
-    // 核心安全修復：只做聯集合併，絕對不覆蓋本地既有資料
+    // 需求 2：處理封包 (聯集合併，避免資料被空覆蓋)
     function handleIncomingPacket(packet) {
       if (!packet || packet.room !== currentUser.room) return;
 
       if (packet.type === 'CHAT_MESSAGE') {
         const msg = packet.payload;
         if (!messages.some(m => m.id === msg.id)) {
-          if (Date.now() - msg.timestamp < FOUR_HOURS_MS) {
+          if (Date.now() - msg.timestamp < TWENTY_FOUR_HOURS_MS) {
             messages.push(msg);
             savePersistentMessages();
             appendRowToDOM(msg, msg.senderId === currentUser.clientId);
           }
         }
       } else if (packet.type === 'SYNC_REQUEST') {
+        // 別台電腦剛重整或上線，將本地 24 小時內的紀錄同步給他
         if (packet.senderId !== currentUser.clientId && messages.length > 0) {
           purgeExpiredMessages();
           const syncPacket = {
@@ -971,16 +978,17 @@
             room: currentUser.room,
             payload: messages
           };
-          const topic = `corp_excel_v3_fixed/${encodeURIComponent(currentUser.room)}`;
+          const topic = `corp_excel_v24h_fixed/${encodeURIComponent(currentUser.room)}`;
           if (mqttClient && mqttClient.connected) {
             mqttClient.publish(topic, JSON.stringify(syncPacket));
           }
         }
       } else if (packet.type === 'SYNC_RESPONSE') {
+        // 收到其他電腦傳來的同步歷史紀錄
         if (packet.targetId === currentUser.clientId && Array.isArray(packet.payload) && packet.payload.length > 0) {
           let updated = false;
           packet.payload.forEach(msg => {
-            if (Date.now() - msg.timestamp < FOUR_HOURS_MS) {
+            if (Date.now() - msg.timestamp < TWENTY_FOUR_HOURS_MS) {
               if (!messages.some(m => m.id === msg.id)) {
                 messages.push(msg);
                 updated = true;
@@ -996,9 +1004,10 @@
       }
     }
 
+    // 需求 1：隨機產生貨櫃請款數據 (民國年、呎吋、載重、車牌、站所、櫃號、起迄、運費、分配運費)
     function generateLogisticsData() {
       const now = new Date();
-      const twYear = now.getFullYear() - 1911;
+      const twYear = now.getFullYear() - 1911; // 民國年格式
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const dateStr = `${twYear}/${month}/${day}`;
@@ -1030,6 +1039,7 @@
       };
     }
 
+    // 發送聊天訊息 (置於「備註」內)
     function sendMessage() {
       const input = document.getElementById('formulaInput');
       let text = input.value.trim();
@@ -1051,7 +1061,7 @@
         sender: currentUser.nickname,
         senderId: currentUser.clientId,
         ...randomData,
-        memo: displayText
+        memo: displayText // 需求 1：將發言內容置於「備註」欄位
       };
 
       messages.push(msgObj);
@@ -1070,7 +1080,7 @@
         localBroadcast.postMessage(packet);
       }
 
-      const topic = `corp_excel_v3_fixed/${encodeURIComponent(currentUser.room)}`;
+      const topic = `corp_excel_v24h_fixed/${encodeURIComponent(currentUser.room)}`;
       if (mqttClient && mqttClient.connected) {
         mqttClient.publish(topic, JSON.stringify(packet));
       }
@@ -1125,11 +1135,11 @@
       updateStats();
     }
 
-    // 清理超過 4 小時的過期記錄
+    // 需求 2：24 小時清除機制
     function purgeExpiredMessages() {
       const now = Date.now();
       const beforeCount = messages.length;
-      messages = messages.filter(m => (now - m.timestamp) < FOUR_HOURS_MS);
+      messages = messages.filter(m => (now - m.timestamp) < TWENTY_FOUR_HOURS_MS);
 
       if (messages.length !== beforeCount) {
         savePersistentMessages();
@@ -1137,20 +1147,21 @@
       }
     }
 
-    // 標準本地儲存 (重新整理時 100% 存在)
+    // 需求 2：本地持久化儲存 (重新整理依然保留)
     function savePersistentMessages() {
       try {
-        localStorage.setItem('excel_saved_msgs_' + currentUser.room, JSON.stringify(messages));
+        localStorage.setItem('excel_saved_msgs_24h_' + currentUser.room, JSON.stringify(messages));
       } catch(e){}
     }
 
+    // 需求 2：重整頁面時載入 (自動過濾掉超過 24 小時的過期記錄)
     function loadSavedMessages() {
       try {
-        const cached = localStorage.getItem('excel_saved_msgs_' + currentUser.room);
+        const cached = localStorage.getItem('excel_saved_msgs_24h_' + currentUser.room);
         if (cached) {
           const parsed = JSON.parse(cached);
           const now = Date.now();
-          messages = parsed.filter(m => (now - m.timestamp) < FOUR_HOURS_MS);
+          messages = parsed.filter(m => (now - m.timestamp) < TWENTY_FOUR_HOURS_MS);
           rebuildTable();
         }
       } catch(e){}
@@ -1166,6 +1177,7 @@
       document.getElementById('statAvg').innerText = '$ ' + avg.toLocaleString();
     }
 
+    // 需求 3：仿造 Excel 老闆鍵 (ESC 秒切換)
     function toggleBossMode() {
       document.getElementById('bossScreen').classList.toggle('active');
     }
@@ -1174,7 +1186,7 @@
       if (confirm('確定要立刻清空本機的所有聊天備註紀錄嗎？')) {
         messages = [];
         try {
-          localStorage.removeItem('excel_saved_msgs_' + currentUser.room);
+          localStorage.removeItem('excel_saved_msgs_24h_' + currentUser.room);
         } catch(e){}
         rebuildTable();
       }
