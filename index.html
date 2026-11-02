@@ -524,7 +524,6 @@
       <span>搜尋櫃號、車牌、請款起迄、備註 (Alt+Q)</span>
     </div>
     <div class="title-right">
-      <!-- 綠色低調按鈕：外觀完全融入標題列 -->
       <button class="boss-key-btn" onclick="toggleBossMode()" title="切換財務總覽分析視圖 (快捷鍵 ESC)">
         <span>📊 財務視圖 (ESC)</span>
       </button>
@@ -610,7 +609,7 @@
     </div>
   </div>
 
-  <!-- Excel 儲存格資料表 (替換為您指定的貨櫃請款欄位) -->
+  <!-- Excel 儲存格資料表 -->
   <div class="sheet-wrapper">
     <div class="table-container" id="tableContainer">
       <table class="excel-table" id="excelTable">
@@ -665,7 +664,7 @@
       </div>
       <div class="modal-body">
         <p style="color:#555; line-height:1.4;">
-          設定您的經辦人員暱稱與站所。全體同仁預設將自動連入<b>同一間固定公用頻道</b>，資料無伺服器硬碟存檔，滿 4 小時自動銷毀。
+          設定您的經辦人員暱稱與站所。全體同仁預設將自動連入<b>同一間固定公用頻道</b>，資料於重新整理時依然保留，滿 4 小時自動銷毀。
         </p>
         <div class="form-group">
           <label>經辦人暱稱 / 同仁姓名 <span style="color:red;">*</span></label>
@@ -760,7 +759,7 @@
     let mqttClient = null;
     let localBroadcast = null;
 
-    /* ========== 依據您提供的截圖特徵產生的隨機資料庫 ========== */
+    /* 隨機生成資料庫 */
     const SIZES = ["40", "20", "40HQ", "40", "40", "20"];
     const WEIGHTS = ["重", "重", "重", "空", "24.5", "21.8", "26.3", "20.5", "3.8", "25.2"];
     const TRUCK_PLATES = [
@@ -809,7 +808,8 @@
       }
       document.getElementById('displayRoomTag').innerText = currentUser.room;
 
-      loadFromSession();
+      // 載入持久化儲存（重新整理依然存在）
+      loadSavedMessages();
 
       if (!currentUser.nickname) {
         showLoginModal();
@@ -832,6 +832,7 @@
         }
       });
 
+      // 每 30 秒自動過濾並清理超過 4 小時的過期記錄
       setInterval(purgeExpiredMessages, 30000);
     });
 
@@ -888,9 +889,8 @@
       document.getElementById('displayRoomTag').innerText = newRoom;
 
       messages = [];
-      sessionStorage.removeItem('excel_cached_msgs_' + current);
       rebuildTable();
-      loadFromSession();
+      loadSavedMessages();
       initConnection();
     }
 
@@ -958,7 +958,7 @@
         if (!messages.some(m => m.id === msg.id)) {
           if (Date.now() - msg.timestamp < FOUR_HOURS_MS) {
             messages.push(msg);
-            saveToSession();
+            savePersistentMessages();
             appendRowToDOM(msg, msg.senderId === currentUser.clientId);
           }
         }
@@ -990,17 +990,16 @@
           });
           if (updated) {
             messages.sort((a, b) => a.timestamp - b.timestamp);
-            saveToSession();
+            savePersistentMessages();
             rebuildTable();
           }
         }
       }
     }
 
-    // 隨機生成貨櫃運送相關數據 (依據您的圖片特徵)
     function generateLogisticsData() {
       const now = new Date();
-      const twYear = now.getFullYear() - 1911; // 產生民國年格式
+      const twYear = now.getFullYear() - 1911;
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const dateStr = `${twYear}/${month}/${day}`;
@@ -1053,11 +1052,11 @@
         sender: currentUser.nickname,
         senderId: currentUser.clientId,
         ...randomData,
-        memo: displayText // 聊天訊息放在「備註」
+        memo: displayText
       };
 
       messages.push(msgObj);
-      saveToSession();
+      savePersistentMessages();
       appendRowToDOM(msgObj, true);
       input.value = '';
 
@@ -1127,26 +1126,29 @@
       updateStats();
     }
 
+    // 清理超過 4 小時的過期記錄
     function purgeExpiredMessages() {
       const now = Date.now();
       const beforeCount = messages.length;
       messages = messages.filter(m => (now - m.timestamp) < FOUR_HOURS_MS);
 
       if (messages.length !== beforeCount) {
-        saveToSession();
+        savePersistentMessages();
         rebuildTable();
       }
     }
 
-    function saveToSession() {
+    // 持久化儲存至 localStorage (重新整理依然保留)
+    function savePersistentMessages() {
       try {
-        sessionStorage.setItem('excel_cached_msgs_' + currentUser.room, JSON.stringify(messages));
+        localStorage.setItem('excel_saved_msgs_' + currentUser.room, JSON.stringify(messages));
       } catch(e){}
     }
 
-    function loadFromSession() {
+    // 重新整理時載入 (自動過濾掉超過 4 小時的紀錄)
+    function loadSavedMessages() {
       try {
-        const cached = sessionStorage.getItem('excel_cached_msgs_' + currentUser.room);
+        const cached = localStorage.getItem('excel_saved_msgs_' + currentUser.room);
         if (cached) {
           const parsed = JSON.parse(cached);
           const now = Date.now();
@@ -1173,7 +1175,7 @@
     function manualClear() {
       if (confirm('確定要立刻清空本機的所有聊天備註紀錄嗎？')) {
         messages = [];
-        sessionStorage.removeItem('excel_cached_msgs_' + currentUser.room);
+        localStorage.removeItem('excel_saved_msgs_' + currentUser.room);
         rebuildTable();
       }
     }
