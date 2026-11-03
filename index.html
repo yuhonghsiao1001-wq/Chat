@@ -186,7 +186,7 @@
     }
     .btn-tool:hover { background: #e5e5e5; border-color: #ccc; }
 
-    /* 公式列 (發言輸入框) */
+    /* 公式列 */
     .formula-bar-container {
       display: flex;
       align-items: center;
@@ -293,7 +293,6 @@
       border-bottom: 2px solid #bbb;
     }
 
-    /* 各欄位設定 */
     .col-row-idx { width: 45px; background: #f0f0f0; text-align: center; color: #777; }
     .col-date { width: 85px; text-align: center; font-family: monospace; }
     .col-size { width: 55px; text-align: center; }
@@ -442,7 +441,7 @@
     }
     .btn-primary:hover { background: var(--excel-green-dark); }
 
-    /* 老闆鍵畫面 (ESC 切換) */
+    /* 老闆鍵畫面 */
     .boss-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -504,6 +503,193 @@
       align-items: center;
       gap: 4px;
     }
+
+    /* ====== 側邊抽屜與打小人小遊戲樣式 ====== */
+    .side-drawer-tab {
+      position: fixed;
+      right: 0;
+      top: 140px;
+      background: #e65100;
+      color: white;
+      padding: 10px 5px;
+      border-radius: 6px 0 0 6px;
+      writing-mode: vertical-rl;
+      letter-spacing: 2px;
+      font-size: 11px;
+      cursor: pointer;
+      box-shadow: -2px 2px 8px rgba(0,0,0,0.18);
+      z-index: 1000;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .side-drawer-tab:hover {
+      background: #bf360c;
+      padding-right: 8px;
+    }
+
+    .side-drawer {
+      position: fixed;
+      top: 38px;
+      right: -330px;
+      width: 320px;
+      height: calc(100vh - 68px);
+      background: #fffdfa;
+      border-left: 2px solid #dcd7ce;
+      box-shadow: -6px 0 16px rgba(0,0,0,0.12);
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.28s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+    .side-drawer.open {
+      right: 0;
+    }
+
+    .drawer-header {
+      background: #4e342e;
+      color: #fff;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .drawer-close {
+      cursor: pointer;
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    .drawer-close:hover { opacity: 1; }
+
+    .drawer-content {
+      padding: 14px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .villain-stage {
+      width: 250px;
+      height: 260px;
+      background: radial-gradient(circle, #fff3e0 20%, #ffe0b2 90%);
+      border: 2px dashed #d7ccc8;
+      border-radius: 12px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: crosshair;
+      user-select: none;
+      overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .villain-character {
+      width: 180px;
+      height: 240px;
+      transition: transform 0.08s ease;
+      position: relative;
+    }
+
+    .villain-character.hit {
+      animation: hitShake 0.16s ease-in-out;
+    }
+
+    @keyframes hitShake {
+      0% { transform: scale(0.92) rotate(0deg); }
+      25% { transform: scale(0.86) rotate(-8deg); }
+      75% { transform: scale(0.88) rotate(7deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .floating-text {
+      position: absolute;
+      font-size: 13px;
+      font-weight: 900;
+      color: #d32f2f;
+      text-shadow: 1px 1px 0 #fff;
+      pointer-events: none;
+      animation: floatUp 0.65s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+      z-index: 50;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, -20%) scale(0.8); }
+      50% { opacity: 1; transform: translate(-50%, -80%) scale(1.15); }
+      100% { opacity: 0; transform: translate(-50%, -140%) scale(1.3); }
+    }
+
+    .weapon-select-box {
+      display: flex;
+      gap: 8px;
+      font-size: 11px;
+    }
+    .weapon-btn {
+      padding: 4px 8px;
+      border: 1px solid #bcaaa4;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .weapon-btn.active {
+      background: #d84315;
+      color: white;
+      border-color: #bf360c;
+      font-weight: bold;
+    }
+
+    .injury-status-bar {
+      width: 100%;
+      background: #eeeeee;
+      border-radius: 8px;
+      height: 14px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid #ccc;
+    }
+    .injury-progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4caf50, #ff9800, #f44336, #9c27b0);
+      transition: width 0.2s ease;
+    }
+
+    .hit-counter-box {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 11px;
+      color: #3e2723;
+      padding: 0 4px;
+    }
+
+    .reset-btn {
+      background: #8d6e63;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .reset-btn:hover { background: #6d4c41; }
+
+    .stamp-mark {
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+      animation: stampImpact 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
+      transform-origin: center;
+    }
+
+    @keyframes stampImpact {
+      0% { transform: scale(1.6); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 0.88; }
+    }
   </style>
 </head>
 <body>
@@ -555,6 +741,10 @@
         <span style="font-size:16px;">🧹</span>
         <span>立刻清空</span>
       </button>
+      <button class="btn-tool" onclick="toggleSideDrawer()" title="打開打小人舒壓抽屜">
+        <span style="font-size:16px;">🥊</span>
+        <span>專案稽核</span>
+      </button>
     </div>
 
     <div class="toolbar-group">
@@ -582,7 +772,6 @@
       </div>
     </div>
 
-    <!-- 固定的全體同仁共用頻道指示 -->
     <div class="toolbar-group" style="border:none;">
       <div class="fixed-room-badge" title="所有人打開網頁皆預設連進此固定頻道，跨電腦即時連線">
         <span>🏢 預設公用頻道：</span>
@@ -592,7 +781,7 @@
     </div>
   </div>
 
-  <!-- 公式列 (核心發言輸入框) -->
+  <!-- 公式列 (發言輸入框) -->
   <div class="formula-bar-container">
     <div class="name-box" id="activeCellLabel">K1</div>
     <div class="formula-icon">fx</div>
@@ -608,7 +797,7 @@
     </div>
   </div>
 
-  <!-- Excel 儲存格資料表 (需求 1：11 個專用欄位) -->
+  <!-- Excel 儲存格資料表 -->
   <div class="sheet-wrapper">
     <div class="table-container" id="tableContainer">
       <table class="excel-table" id="excelTable">
@@ -633,7 +822,7 @@
     </div>
   </div>
 
-  <!-- 底部狀態列與分頁標籤 -->
+  <!-- 底部狀態列 -->
   <div class="bottom-bar">
     <div class="sheet-tabs">
       <div class="sheet-tab active">2026_運費請款核算明細</div>
@@ -651,6 +840,200 @@
       <span>平均運費: <b id="statAvg">$ 0</b></span>
       <span>|</span>
       <span>100% ⊕</span>
+    </div>
+  </div>
+
+  <!-- 側邊小抽屜標籤按鈕 -->
+  <div class="side-drawer-tab" id="drawerTab" onclick="toggleSideDrawer()">
+    🎯 內部稽核 / 舒壓小抽屜
+  </div>
+
+  <!-- 側邊抽屜本體 -->
+  <div class="side-drawer" id="sideDrawer">
+    <div class="drawer-header">
+      <span>🔨 打小人 - 奧客/刁民/水貨退散符</span>
+      <span class="drawer-close" onclick="toggleSideDrawer()">✕</span>
+    </div>
+    <div class="drawer-content">
+      <div style="font-size:11px; color:#6d4c41; text-align:center; line-height:1.4;">
+        直短髮、大臉微瞇小眼、身著<b>亮桃色 POLO 衫</b>，更胖更欠扁！
+      </div>
+
+      <div class="weapon-select-box">
+        <button class="weapon-btn" id="weaponShoe" onclick="setWeapon('shoe')">👡 破拖鞋 (打青)</button>
+        <button class="weapon-btn active" id="weaponStamp" onclick="setWeapon('stamp')">💮 退件章 (蓋臉)</button>
+        <button class="reset-btn" onclick="resetVillain()" title="洗乾淨所有傷勢與印泥">💊 復原洗臉</button>
+      </div>
+
+      <!-- 挨打受傷進度條 -->
+      <div class="injury-status-bar" title="小人負傷程度">
+        <div class="injury-progress" id="injuryProgress"></div>
+      </div>
+      <div class="hit-counter-box">
+        <span>傷勢狀態：<b id="injuryStateText" style="color:#2e7d32;">神氣刁難</b></span>
+        <span>累計挨打：<b id="hitCount" style="color:#d32f2f;">0</b> 下</span>
+      </div>
+
+      <!-- 打小人互動舞台 -->
+      <div class="villain-stage" id="villainStage" onclick="strikeVillain(event)">
+        <!-- 向量小人本體 (全新重製：大臉盤、瞇小眼、厚胖體態、亮桃色POLO衫) -->
+        <div class="villain-character" id="villainChar">
+          <svg viewBox="0 0 200 240" width="100%" height="100%" id="villainSvg">
+            <defs>
+              <!-- 臉部漸層 -->
+              <radialGradient id="faceGrad" cx="50%" cy="45%" r="55%">
+                <stop offset="0%" stop-color="#fff5f0"/>
+                <stop offset="85%" stop-color="#fad2bf"/>
+                <stop offset="100%" stop-color="#f0bba4"/>
+              </radialGradient>
+              
+              <!-- 亮桃色 POLO 衫漸層 (艷麗高彩度的桃紅) -->
+              <linearGradient id="poloPinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff1493"/>
+                <stop offset="50%" stop-color="#e91e63"/>
+                <stop offset="100%" stop-color="#c2185b"/>
+              </linearGradient>
+            </defs>
+
+            <!-- 更臃腫肥胖的身軀 / 亮桃紅色 POLO 衫 -->
+            <path id="bodyPath" d="M 22,170 C 12,190 6,230 6,240 L 194,240 C 194,230 188,190 178,170 C 160,154 135,150 100,150 C 65,150 40,154 22,170 Z" fill="url(#poloPinkGrad)" stroke="#880e4f" stroke-width="2.5" />
+            
+            <!-- POLO 衫肩膀與腹部微胖褶痕 -->
+            <path d="M 28,205 Q 48,198 62,210" stroke="#ad1457" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M 172,205 Q 152,198 138,210" stroke="#ad1457" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M 70,236 Q 100,230 130,236" stroke="#ad1457" stroke-width="2.5" fill="none" opacity="0.7"/>
+
+            <!-- POLO 衫白色門襟 (前胸鈕扣排) -->
+            <rect x="93" y="152" width="14" height="42" rx="2" fill="#ffffff" stroke="#e0e0e0" stroke-width="1.2"/>
+            <circle cx="100" cy="162" r="2.2" fill="#e91e63"/>
+            <circle cx="100" cy="174" r="2.2" fill="#e91e63"/>
+            <circle cx="100" cy="186" r="2.2" fill="#e91e63"/>
+
+            <!-- POLO 衫白色翻領 (經典大媽立翻領) -->
+            <polygon points="68,148 95,154 84,172 60,156" fill="#ffffff" stroke="#c2185b" stroke-width="1.5"/>
+            <polygon points="132,148 105,154 116,172 140,156" fill="#ffffff" stroke="#c2185b" stroke-width="1.5"/>
+
+            <!-- 肥厚微胖的三層雙下巴 -->
+            <ellipse cx="100" cy="152" rx="36" ry="16" fill="#ebd0c0" stroke="#cfa692" stroke-width="1.5"/>
+            <ellipse cx="100" cy="144" rx="30" ry="12" fill="#f4dbcd" stroke="#cfa692" stroke-width="1.2"/>
+            <path d="M 74,142 Q 100,158 126,142" stroke="#b0806c" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <path d="M 80,151 Q 100,162 120,151" stroke="#b0806c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+
+            <!-- 大臉盤 (更寬、更下垂臃腫的圓方大臉) -->
+            <path id="faceEl" d="M 46,95 C 44,60 70,44 100,44 C 130,44 156,60 154,95 C 158,118 152,144 126,146 C 114,147 100,148 86,147 C 48,144 42,118 46,95 Z" fill="url(#faceGrad)" stroke="#c29480" stroke-width="2.2"/>
+            
+            <!-- 大臉腮肉與鬆弛肉 -->
+            <ellipse id="normalBlushL" cx="62" cy="116" rx="12" ry="8" fill="#ff4081" opacity="0.3"/>
+            <ellipse id="normalBlushR" cx="138" cy="116" rx="12" ry="8" fill="#ff4081" opacity="0.3"/>
+
+            <!-- 深刻挑剔的法令紋 (顯老顯兇) -->
+            <path d="M 81,114 Q 76,128 86,135" stroke="#ba8270" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 119,114 Q 124,128 114,135" stroke="#ba8270" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+            <!-- 肥大圓鼻頭 -->
+            <path id="noseEl" d="M 94,107 Q 100,114 106,107" stroke="#aa7a68" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+            <path d="M 90,108 Q 94,105 97,108" stroke="#ba8270" stroke-width="1.5" fill="none"/>
+            <path d="M 110,108 Q 106,105 103,108" stroke="#ba8270" stroke-width="1.5" fill="none"/>
+
+            <!-- 碎念挑剔的微下撇厚嘴唇 -->
+            <g id="normalMouth">
+              <path d="M 86,128 Q 100,123 114,128" stroke="#880e4f" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 92,130 Q 100,137 108,130" stroke="#ad1457" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            </g>
+
+            <!-- 稀疏微挑的精明細眉毛 -->
+            <g id="normalEyebrows">
+              <path d="M 68,82 Q 80,74 92,82" stroke="#111" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+              <path d="M 132,82 Q 120,74 108,82" stroke="#111" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+            </g>
+
+            <!-- 細小眼睛 (小眼瞇瞇縫、單眼皮、精明尖銳微吊梢) -->
+            <g id="normalEyes">
+              <!-- 左眼 (極細縫) -->
+              <path d="M 72,92 Q 82,88 92,93" stroke="#212121" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <path d="M 74,93 Q 82,95 90,93" stroke="#555" stroke-width="1.4" fill="none"/>
+              <circle cx="82" cy="92" r="1.6" fill="#111"/>
+              <!-- 眼尾魚尾紋與眼袋肉 -->
+              <path d="M 66,90 L 61,88" stroke="#8d6e63" stroke-width="1.4"/>
+              <path d="M 67,93 L 62,94" stroke="#8d6e63" stroke-width="1.4"/>
+              <path d="M 74,98 Q 82,101 90,98" stroke="#ba8270" stroke-width="1.2" fill="none"/>
+
+              <!-- 右眼 (極細縫) -->
+              <path d="M 128,92 Q 118,88 108,93" stroke="#212121" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <path d="M 126,93 Q 118,95 110,93" stroke="#555" stroke-width="1.4" fill="none"/>
+              <circle cx="118" cy="92" r="1.6" fill="#111"/>
+              <!-- 眼尾魚尾紋與眼袋肉 -->
+              <path d="M 134,90 L 139,88" stroke="#8d6e63" stroke-width="1.4"/>
+              <path d="M 133,93 L 138,94" stroke="#8d6e63" stroke-width="1.4"/>
+              <path d="M 126,98 Q 118,101 110,98" stroke="#ba8270" stroke-width="1.2" fill="none"/>
+            </g>
+
+            <!-- 俐落直短髮 (直短黑髮貼順包覆大臉盤) -->
+            <path id="hairBack" d="M 44,95 C 38,62 55,34 100,34 C 145,34 162,62 156,95 C 162,118 158,140 148,142 C 145,130 148,105 146,92 C 140,58 60,58 54,92 C 52,105 55,130 52,142 C 42,140 38,118 44,95 Z" fill="#141414" />
+            
+            <!-- 額頭厚直齊瀏海 (平直分明蓋住大額頭) -->
+            <g id="hairBangsNormal">
+              <path d="M 50,68 Q 100,70 150,68 L 150,84 Q 135,84 125,81 Q 112,85 100,81 Q 88,85 75,81 Q 65,84 50,84 Z" fill="#1f1f1f" stroke="#0a0a0a" stroke-width="1.2"/>
+              <path d="M 68,48 Q 100,44 132,48" stroke="#424242" stroke-width="2" fill="none" opacity="0.6"/>
+              <!-- 直髮順垂細線 -->
+              <line x1="56" y1="88" x2="54" y2="128" stroke="#2c2c2c" stroke-width="1.2"/>
+              <line x1="144" y1="88" x2="146" y2="128" stroke="#2c2c2c" stroke-width="1.2"/>
+            </g>
+
+            <!-- 階段 1：輕傷 (歪嘴泛青、巴掌印) -->
+            <g id="injuryStage1" style="display:none;">
+              <ellipse cx="120" cy="132" rx="6" ry="4.5" fill="#5c6bc0" opacity="0.6"/>
+              <path d="M 58,112 Q 60,120 56,126 M 63,110 Q 65,121 61,128 M 68,111 Q 70,122 66,129" stroke="#e53935" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+            </g>
+
+            <!-- 階段 2：中傷 (黑眼圈、散亂直髮、嘴角流血) -->
+            <g id="injuryStage2" style="display:none;">
+              <ellipse cx="118" cy="92" rx="15" ry="10" fill="#4a148c" opacity="0.5"/>
+              <path d="M 84,127 Q 96,138 116,124" stroke="#b71c1c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              <path d="M 114,126 C 116,135 112,142 114,148" stroke="#b71c1c" stroke-width="2.5" fill="none"/>
+              <!-- 直瀏海打岔凌亂 -->
+              <path d="M 85,81 L 88,94 L 93,82" stroke="#141414" stroke-width="2" fill="#141414"/>
+              <path d="M 108,82 L 112,93 L 115,81" stroke="#141414" stroke-width="2" fill="#141414"/>
+            </g>
+
+            <!-- 階段 3：重傷 (額頭巨大腫包、雙眼XX、十字OK繃) -->
+            <g id="injuryStage3" style="display:none;">
+              <ellipse cx="136" cy="56" rx="14" ry="11" fill="#ff7043" stroke="#d84315" stroke-width="2"/>
+              <path d="M 130,50 L 136,54 M 138,51 L 142,57" stroke="#fff" stroke-width="1.5"/>
+              <rect x="54" y="104" width="18" height="6.5" rx="1" fill="#ffe082" stroke="#ffb300" stroke-width="1" transform="rotate(28 63 107)"/>
+              <rect x="60" y="98" width="6.5" height="18" rx="1" fill="#ffe082" stroke="#ffb300" stroke-width="1" transform="rotate(28 63 107)"/>
+              <rect x="74" y="66" width="34" height="12" rx="2" fill="#80deea" stroke="#00acc1" stroke-width="1" opacity="0.9"/>
+              <!-- 雙眼 XX -->
+              <g stroke="#263238" stroke-width="3.2" stroke-linecap="round">
+                <line x1="74" y1="86" x2="86" y2="98"/>
+                <line x1="86" y1="86" x2="74" y2="98"/>
+                <line x1="112" y1="86" x2="124" y2="98"/>
+                <line x1="124" y1="86" x2="112" y2="98"/>
+              </g>
+            </g>
+
+            <!-- 階段 4：徹底崩潰 (大哭淚海、眼冒金星、魂魄出竅) -->
+            <g id="injuryStage4" style="display:none;">
+              <path d="M 72,96 Q 54,115 48,138" stroke="#42a5f5" stroke-width="3.5" fill="none" opacity="0.9"/>
+              <path d="M 126,96 Q 144,115 150,138" stroke="#42a5f5" stroke-width="3.5" fill="none" opacity="0.9"/>
+              <polygon points="100,26 103,34 111,34 105,39 107,47 100,42 93,47 95,39 89,34 97,34" fill="#ffd600" stroke="#f57f17" stroke-width="1"/>
+              <polygon points="62,42 64,48 70,48 65,52 67,58 62,54 57,58 59,52 54,48 60,48" fill="#ffd600" stroke="#f57f17" stroke-width="1"/>
+              <!-- 魂魄白煙 -->
+              <path d="M 152,45 Q 170,25 160,12 Q 148,0 170,0 Q 180,8 172,22 Q 164,36 156,45 Z" fill="#e0f7fa" opacity="0.8" stroke="#80deea" stroke-width="1"/>
+              <circle cx="164" cy="9" r="1.5" fill="#455a64"/>
+              <circle cx="170" cy="7" r="1.5" fill="#455a64"/>
+              <path d="M 164,15 Q 168,12 171,15" stroke="#455a64" stroke-width="1" fill="none"/>
+            </g>
+
+            <!-- 動態深紅印章印記專用容器 (會緊貼大臉一起震動) -->
+            <g id="stampMarksContainer"></g>
+          </svg>
+        </div>
+      </div>
+
+      <div style="font-size:10px; color:#888; text-align:center;">
+        （按鍵盤 <b>ESC</b> 一樣能秒切換至 Excel 財務圖表避險）
+      </div>
     </div>
   </div>
 
@@ -686,7 +1069,7 @@
     </div>
   </div>
 
-  <!-- 老闆鍵畫面 (ESC 鍵秒切換) -->
+  <!-- 老闆鍵畫面 -->
   <div class="boss-screen" id="bossScreen">
     <div class="boss-header">
       <div>
@@ -744,7 +1127,6 @@
   </div>
 
   <script>
-    // 需求 2：設定聊天紀錄 24 小時清除 (24 * 60 * 60 * 1000 ms)
     const GLOBAL_DEFAULT_ROOM = "CORP-LOGISTICS-HUB";
     const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
@@ -759,7 +1141,6 @@
     let mqttClient = null;
     let localBroadcast = null;
 
-    /* 需求 1：依截圖實務產生的隨機資料庫 */
     const SIZES = ["40", "20", "40HQ", "40", "40", "20"];
     const WEIGHTS = ["重", "重", "重", "空", "24.5", "21.8", "26.3", "20.5", "3.8", "25.2"];
     const TRUCK_PLATES = [
@@ -808,7 +1189,6 @@
       }
       document.getElementById('displayRoomTag').innerText = currentUser.room;
 
-      // 需求 2：重整頁面立刻讀出 24 小時內的歷史資料
       loadSavedMessages();
 
       if (!currentUser.nickname) {
@@ -832,7 +1212,6 @@
         }
       });
 
-      // 每 30 秒自動清掃一次滿 24 小時的過期記錄
       setInterval(purgeExpiredMessages, 30000);
     });
 
@@ -896,7 +1275,6 @@
       initConnection();
     }
 
-    // 需求 2：跨電腦連線 (MQTT WebSocket)
     function initConnection() {
       if (localBroadcast) localBroadcast.close();
       localBroadcast = new BroadcastChannel('corp_excel_' + currentUser.room);
@@ -929,7 +1307,6 @@
 
         mqttClient.subscribe(topic, { qos: 0 });
 
-        // 向所有在線電腦廣播請求同步最新歷史紀錄
         const reqPacket = {
           type: 'SYNC_REQUEST',
           senderId: currentUser.clientId,
@@ -954,7 +1331,6 @@
       });
     }
 
-    // 需求 2：處理封包 (聯集合併，避免資料被空覆蓋)
     function handleIncomingPacket(packet) {
       if (!packet || packet.room !== currentUser.room) return;
 
@@ -968,7 +1344,6 @@
           }
         }
       } else if (packet.type === 'SYNC_REQUEST') {
-        // 別台電腦剛重整或上線，將本地 24 小時內的紀錄同步給他
         if (packet.senderId !== currentUser.clientId && messages.length > 0) {
           purgeExpiredMessages();
           const syncPacket = {
@@ -984,7 +1359,6 @@
           }
         }
       } else if (packet.type === 'SYNC_RESPONSE') {
-        // 收到其他電腦傳來的同步歷史紀錄
         if (packet.targetId === currentUser.clientId && Array.isArray(packet.payload) && packet.payload.length > 0) {
           let updated = false;
           packet.payload.forEach(msg => {
@@ -1004,10 +1378,9 @@
       }
     }
 
-    // 需求 1：隨機產生貨櫃請款數據 (民國年、呎吋、載重、車牌、站所、櫃號、起迄、運費、分配運費)
     function generateLogisticsData() {
       const now = new Date();
-      const twYear = now.getFullYear() - 1911; // 民國年格式
+      const twYear = now.getFullYear() - 1911;
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const dateStr = `${twYear}/${month}/${day}`;
@@ -1039,7 +1412,6 @@
       };
     }
 
-    // 發送聊天訊息 (置於「備註」內)
     function sendMessage() {
       const input = document.getElementById('formulaInput');
       let text = input.value.trim();
@@ -1061,7 +1433,7 @@
         sender: currentUser.nickname,
         senderId: currentUser.clientId,
         ...randomData,
-        memo: displayText // 需求 1：將發言內容置於「備註」欄位
+        memo: displayText
       };
 
       messages.push(msgObj);
@@ -1135,7 +1507,6 @@
       updateStats();
     }
 
-    // 需求 2：24 小時清除機制
     function purgeExpiredMessages() {
       const now = Date.now();
       const beforeCount = messages.length;
@@ -1147,14 +1518,12 @@
       }
     }
 
-    // 需求 2：本地持久化儲存 (重新整理依然保留)
     function savePersistentMessages() {
       try {
         localStorage.setItem('excel_saved_msgs_24h_' + currentUser.room, JSON.stringify(messages));
       } catch(e){}
     }
 
-    // 需求 2：重整頁面時載入 (自動過濾掉超過 24 小時的過期記錄)
     function loadSavedMessages() {
       try {
         const cached = localStorage.getItem('excel_saved_msgs_24h_' + currentUser.room);
@@ -1177,9 +1546,12 @@
       document.getElementById('statAvg').innerText = '$ ' + avg.toLocaleString();
     }
 
-    // 需求 3：仿造 Excel 老闆鍵 (ESC 秒切換)
     function toggleBossMode() {
-      document.getElementById('bossScreen').classList.toggle('active');
+      const boss = document.getElementById('bossScreen');
+      boss.classList.toggle('active');
+      if (boss.classList.contains('active')) {
+        document.getElementById('sideDrawer').classList.remove('open');
+      }
     }
 
     function manualClear() {
@@ -1217,6 +1589,176 @@
           "'": '&#039;'
         }[m];
       });
+    }
+
+    /* ====== 打小人遊戲核心邏輯 (深紅印章 + 挨打進度) ====== */
+    let currentWeapon = 'stamp';
+    let hitCounter = 0;
+
+    const HIT_TEXTS = [
+      "消滅刁客！",
+      "退單無效！",
+      "扣留重櫃！",
+      "罰款加倍！",
+      "駁回請款！",
+      "退回補件！",
+      "延滯費算你的！",
+      "不要在群組催！",
+      "退關責任自負！",
+      "稽核不過！"
+    ];
+
+    const STAMP_WORDS = ["退 件", "駁 回", "作 廢", "不合格", "退 關", "延 滯", "不予核銷"];
+
+    function toggleSideDrawer() {
+      document.getElementById('sideDrawer').classList.toggle('open');
+    }
+
+    function setWeapon(type) {
+      currentWeapon = type;
+      document.getElementById('weaponShoe').classList.toggle('active', type === 'shoe');
+      document.getElementById('weaponStamp').classList.toggle('active', type === 'stamp');
+    }
+
+    function strikeVillain(e) {
+      hitCounter++;
+      document.getElementById('hitCount').innerText = hitCounter;
+
+      const char = document.getElementById('villainChar');
+      char.classList.remove('hit');
+      void char.offsetWidth;
+      char.classList.add('hit');
+
+      if (currentWeapon === 'stamp') {
+        applyRedStampMark(e);
+      }
+
+      updateInjuryVisuals();
+
+      // 受擊文字浮現
+      const stage = document.getElementById('villainStage');
+      const rect = stage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const floatEl = document.createElement('div');
+      floatEl.className = 'floating-text';
+      floatEl.style.left = x + 'px';
+      floatEl.style.top = y + 'px';
+
+      const randomWord = HIT_TEXTS[Math.floor(Math.random() * HIT_TEXTS.length)];
+      floatEl.innerText = (currentWeapon === 'shoe' ? '👡 ' : '💮 ') + randomWord;
+      stage.appendChild(floatEl);
+
+      setTimeout(() => {
+        if (floatEl.parentNode) floatEl.parentNode.removeChild(floatEl);
+      }, 650);
+    }
+
+    // 在 SVG 內生成深紅印泥印章 (位置換算至 SVG viewBox: 0 0 200 240)
+    function applyRedStampMark(e) {
+      const svg = document.getElementById('villainSvg');
+      const container = document.getElementById('stampMarksContainer');
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const cx = Math.max(30, Math.min(170, svgP.x));
+      const cy = Math.max(45, Math.min(220, svgP.y));
+
+      const word = STAMP_WORDS[Math.floor(Math.random() * STAMP_WORDS.length)];
+      const rot = Math.floor(Math.random() * 40) - 20;
+      const stampG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      stampG.setAttribute("class", "stamp-mark");
+      stampG.setAttribute("transform", `translate(${cx}, ${cy}) rotate(${rot})`);
+
+      const isCircle = Math.random() > 0.4;
+      if (isCircle) {
+        stampG.innerHTML = `
+          <circle cx="0" cy="0" r="18" fill="none" stroke="#b71c1c" stroke-width="2.5" opacity="0.88"/>
+          <circle cx="0" cy="0" r="15" fill="#ffebee" fill-opacity="0.35" stroke="#b71c1c" stroke-width="1" stroke-dasharray="2,1" opacity="0.85"/>
+          <text x="0" y="4" text-anchor="middle" font-size="9" font-weight="900" fill="#b71c1c" font-family="'Microsoft JhengHei', sans-serif" letter-spacing="1" opacity="0.95">${word}</text>
+        `;
+      } else {
+        stampG.innerHTML = `
+          <rect x="-19" y="-12" width="38" height="24" rx="3" fill="#ffebee" fill-opacity="0.35" stroke="#b71c1c" stroke-width="2.5" opacity="0.88"/>
+          <rect x="-16" y="-9" width="32" height="18" rx="1.5" fill="none" stroke="#b71c1c" stroke-width="0.8" opacity="0.85"/>
+          <text x="0" y="3.5" text-anchor="middle" font-size="8.5" font-weight="900" fill="#b71c1c" font-family="'Microsoft JhengHei', sans-serif" letter-spacing="1" opacity="0.95">${word}</text>
+        `;
+      }
+
+      container.appendChild(stampG);
+
+      if (container.children.length > 40) {
+        container.removeChild(container.firstChild);
+      }
+    }
+
+    // 更新各受傷階級圖層
+    function updateInjuryVisuals() {
+      const pct = Math.min(100, Math.round((hitCounter / 50) * 100));
+      document.getElementById('injuryProgress').style.width = pct + '%';
+
+      const st1 = document.getElementById('injuryStage1');
+      const st2 = document.getElementById('injuryStage2');
+      const st3 = document.getElementById('injuryStage3');
+      const st4 = document.getElementById('injuryStage4');
+      const normalEyes = document.getElementById('normalEyes');
+      const normalMouth = document.getElementById('normalMouth');
+      const stateText = document.getElementById('injuryStateText');
+
+      if (hitCounter < 5) {
+        stateText.innerText = "神氣刁難";
+        stateText.style.color = "#2e7d32";
+        st1.style.display = 'none';
+        st2.style.display = 'none';
+        st3.style.display = 'none';
+        st4.style.display = 'none';
+        normalEyes.style.display = 'block';
+        normalMouth.style.display = 'block';
+      } else if (hitCounter >= 5 && hitCounter < 15) {
+        stateText.innerText = "輕傷巴掌印 (初見驚嚇)";
+        stateText.style.color = "#f57c00";
+        st1.style.display = 'block';
+        st2.style.display = 'none';
+        st3.style.display = 'none';
+        st4.style.display = 'none';
+      } else if (hitCounter >= 15 && hitCounter < 30) {
+        stateText.innerText = "中傷鼻青臉腫 (黑眼圈+流血)";
+        stateText.style.color = "#d32f2f";
+        st1.style.display = 'block';
+        st2.style.display = 'block';
+        st3.style.display = 'none';
+        st4.style.display = 'none';
+        normalMouth.style.display = 'none';
+      } else if (hitCounter >= 30 && hitCounter < 50) {
+        stateText.innerText = "重傷昏厥 (雙眼X+額頭腫包)";
+        stateText.style.color = "#7b1fa2";
+        st1.style.display = 'block';
+        st2.style.display = 'block';
+        st3.style.display = 'block';
+        st4.style.display = 'none';
+        normalEyes.style.display = 'none';
+        normalMouth.style.display = 'none';
+      } else {
+        stateText.innerText = "徹底倒地 (靈魂出竅+崩潰淚崩)";
+        stateText.style.color = "#455a64";
+        st1.style.display = 'block';
+        st2.style.display = 'block';
+        st3.style.display = 'block';
+        st4.style.display = 'block';
+        normalEyes.style.display = 'none';
+        normalMouth.style.display = 'none';
+      }
+    }
+
+    // 重置洗臉小人
+    function resetVillain() {
+      hitCounter = 0;
+      document.getElementById('hitCount').innerText = '0';
+      document.getElementById('stampMarksContainer').innerHTML = '';
+      updateInjuryVisuals();
     }
   </script>
 </body>
